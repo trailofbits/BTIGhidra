@@ -7,3 +7,4 @@
 /.gradle
 # Ignore copied files
 /lib/os
+/gradle.properties
