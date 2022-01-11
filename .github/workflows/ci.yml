@@ -8,35 +8,10 @@ on:
       - 'main'
 
 jobs:
-  lint:
-    runs-on: ubuntu-20.04
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          submodules: recursive
-
-      - name: 'Install tools'
-        run: |
-          # just command runner https://github.com/casey/just#pre-built-binaries
-          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
-          # Check markdown links
-          sudo npm install -g markdown-link-check
-
-      - name: 'Lint Markdown'
-        run: |
-          find . -name "*.md" -exec markdown-link-check {} \;
-
-      - name: 'Lint Code'
-        run: |
-          just lint
-
   test:
     runs-on: ubuntu-20.04
-    needs: lint
     steps:
       - uses: actions/checkout@v2
-        with:
-          submodules: recursive
 
       - uses: actions/setup-java@v2
         with:
@@ -50,6 +25,12 @@ jobs:
         run: |
           # just command runner https://github.com/casey/just#pre-built-binaries
           curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
+          # Check markdown links
+          sudo npm install -g markdown-link-check
+
+      - name: 'Lint Markdown'
+        run: |
+          find . -name "*.md" -exec markdown-link-check {} \;
 
       - name: 'Setup Ghidra'
         run: |
@@ -57,6 +38,6 @@ jobs:
           unzip ghidra.zip
           echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.1.1_PUBLIC" >> $GITHUB_ENV
 
-      - name: 'Build and Test BTI'
+      - name: 'Lint, Build, and Test BTI'
         run: |
           just test
