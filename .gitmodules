@@ -1,0 +1,6 @@
+[submodule "binary_type_inference"]
+	path = binary_type_inference
+	url = git@github.com:trailofbits/binary_type_inference.git
+[submodule "cwe_checker"]
+	path = cwe_checker
+	url = git@github.com:trailofbits/cwe_checker.git

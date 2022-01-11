@@ -1,0 +1,9 @@
+/bin/
+/build/
+/dist/
+/.pydevproject
+/.classpath
+/lib/*.jar
+/.gradle
+# Ignore copied files
+/lib/os
