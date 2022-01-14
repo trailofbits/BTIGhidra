@@ -14,6 +14,8 @@ public class BinaryTypeInference {
   private final Path irLocation;
   private final Path typeLatticeLocation;
   private final Path additionalConstraintsLocation;
+  private final Path interesting_vars_file;
+  private final Path out_protobuf;
 
   private Optional<TypeInferenceResult> lastResult = Optional.empty();
 
@@ -32,13 +34,17 @@ public class BinaryTypeInference {
       Path programLocation,
       Path irLocation,
       Path typeLatticeLocation,
-      Path additionalConstraintsLocation) {
+      Path additionalConstraintsLocation,
+      Path interesting_vars_file,
+      Path out_protobuf) {
     // this.program = program;
     this.typeInferenceTool = typeInferenceToolLocation;
     this.programLocation = programLocation;
     this.irLocation = irLocation;
     this.typeLatticeLocation = typeLatticeLocation;
     this.additionalConstraintsLocation = additionalConstraintsLocation;
+    this.interesting_vars_file = interesting_vars_file;
+    this.out_protobuf = out_protobuf;
   }
 
   public Optional<TypeInferenceResult> getLastResult() {
@@ -52,14 +58,21 @@ public class BinaryTypeInference {
    */
   public TypeInferenceResult inferTypes() throws IOException {
     // Call binary type inference tool with arguments
-    Process bti =
+    ProcessBuilder bldr =
         new ProcessBuilder(
-                typeInferenceTool.toAbsolutePath().toString(),
-                programLocation.toAbsolutePath().toString(),
-                irLocation.toAbsolutePath().toString(),
-                typeLatticeLocation.toAbsolutePath().toString(),
-                additionalConstraintsLocation.toAbsolutePath().toString())
-            .start();
+            typeInferenceTool.toAbsolutePath().toString(),
+            programLocation.toAbsolutePath().toString(),
+            irLocation.toAbsolutePath().toString(),
+            typeLatticeLocation.toAbsolutePath().toString(),
+            additionalConstraintsLocation.toAbsolutePath().toString(),
+            this.interesting_vars_file.toString(),
+            "--out",
+            this.out_protobuf.toString());
+
+    System.out.println(bldr.command().toString());
+
+    var bti = bldr.start();
+
     var ret = new TypeInferenceResult(bti);
     lastResult = Optional.of(ret);
     return ret;
