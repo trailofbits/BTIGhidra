@@ -1,8 +1,11 @@
 package binary_type_inference;
 
+import ctypes.Ctypes.CTypeMapping;
+import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.util.Optional;
+import org.apache.commons.vfs2.FileNotFoundException;
 
 public class BinaryTypeInference {
   // Executable tool name to search for
@@ -16,6 +19,7 @@ public class BinaryTypeInference {
   private final Path additionalConstraintsLocation;
   private final Path interesting_vars_file;
   private final Path out_protobuf;
+  private CTypeMapping ct;
 
   private Optional<TypeInferenceResult> lastResult = Optional.empty();
 
@@ -51,6 +55,10 @@ public class BinaryTypeInference {
     return lastResult;
   }
 
+  public CTypeMapping getCtypeMapping() throws FileNotFoundException, IOException {
+    return CTypeMapping.parseFrom(new FileInputStream(this.out_protobuf.toFile()));
+  }
+
   /**
    * Run the type inference tool and collect the results
    *
@@ -68,8 +76,6 @@ public class BinaryTypeInference {
             this.interesting_vars_file.toString(),
             "--out",
             this.out_protobuf.toString());
-
-    System.out.println(bldr.command().toString());
 
     var bti = bldr.start();
 

@@ -32,7 +32,9 @@
 plugins {
     id 'eclipse'
     id 'idea'
+    id 'java'
     id "com.diffplug.spotless" version "6.1.2"
+    id "com.google.protobuf" version "0.8.17"
 }
 
 //----------------------START "DO NOT MODIFY" SECTION------------------------------
@@ -58,6 +60,7 @@ repositories {
 }
 
 dependencies {
+    implementation 'com.google.protobuf:protobuf-java:3.17.3'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.mockito:mockito-inline:4.2.0'
@@ -136,6 +139,26 @@ task install() {
 }
 // End copy
 
+protobuf {
+    generatedFilesBaseDir = "$projectDir/src"
+    protoc {
+        artifact = "com.google.protobuf:protoc:3.17.3"
+    }
+}
+sourceSets {
+  main {
+    proto {
+      // In addition to the default 'src/main/proto'
+      srcDir '../binary_type_inference/data_formats'
+      // In addition to the default '**/*.proto' (use with caution).
+      // Using an extension other than 'proto' is NOT recommended,
+      // because when proto files are published along with class files, we can
+      // only tell the type of a file from its extension.
+      include '*.prot o'
+    }
+  }
+}
+
 // Code style formatting
 spotless {
     // optional: limit format enforcement to just the files changed by this feature branch
@@ -153,7 +176,7 @@ spotless {
     java {
         target 'src/*/java/**/*.java', 'ghidra_scripts/*.java'
         importOrder() // standard import order
-
+        targetExclude('src/main/java/ctypes/Ctypes.java')
         removeUnusedImports()
 
         googleJavaFormat('1.13.0')
