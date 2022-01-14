@@ -144,6 +144,9 @@ protobuf {
     protoc {
         artifact = "com.google.protobuf:protoc:3.17.3"
     }
+    generateProtoTasks {
+        all().each { task -> task.dependsOn copyDependencies }
+    }
 }
 sourceSets {
   main {
@@ -154,7 +157,7 @@ sourceSets {
       // Using an extension other than 'proto' is NOT recommended,
       // because when proto files are published along with class files, we can
       // only tell the type of a file from its extension.
-      include '*.prot o'
+      include '*.proto'
     }
   }
 }
