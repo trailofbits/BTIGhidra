@@ -1,6 +1,9 @@
 package binary_type_inference;
 
+import ghidra.program.model.address.Address;
+import ghidra.program.model.address.AddressFactory;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
+import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.mem.MemoryAccessException;
 import ghidra.test.AbstractGhidraHeadlessIntegrationTest;
@@ -11,7 +14,10 @@ import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.VersionException;
 import java.io.File;
 import java.io.IOException;
+import java.util.HashSet;
 import java.util.Objects;
+import java.util.Set;
+
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -30,7 +36,8 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
   @After
   public void tearDown() {
-    if (program != null) env.release(program);
+    if (program != null)
+      env.release(program);
     program = null;
     env.dispose();
   }
@@ -38,21 +45,30 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
   @Test
   public void generateListInputs()
       throws IOException, InvalidNameException, DuplicateNameException, CancelledException,
-          VersionException, MemoryAccessException {
+      VersionException, MemoryAccessException {
     // For future reference, to get processor:
     // Processor.findOrPossiblyCreateProcessor("x86")
     LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
-    program =
-        env.getGhidraProject()
-            .importProgram(
-                new File(
-                    Objects.requireNonNull(
-                            GenerateInputsTest.class
-                                .getClassLoader()
-                                .getResource("binaries/list_test.o"))
-                        .getFile()),
-                specPair.getLanguage(),
-                specPair.getCompilerSpec());
+    program = env.getGhidraProject()
+        .importProgram(
+            new File(
+                Objects.requireNonNull(
+                    GenerateInputsTest.class
+                        .getClassLoader()
+                        .getResource("binaries/list_test.o"))
+                    .getFile()),
+            specPair.getLanguage(),
+            specPair.getCompilerSpec());
     env.getGhidraProject().analyze(program, false);
+
+    Set<Function> pres = new HashSet<>();
+
+    var target_func = program.getFunctionManager().getFunctionAt(program.getAddressFactory().getAddress("0x1000"));
+    pres.add(target_func);
+
+    PreservedFunctionList pl = new PreservedFunctionList(pres);
+
+    var inf = new BinaryTypeInference(program, pl);
+    inf.produceArtifacts();
   }
 }

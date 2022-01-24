@@ -67,7 +67,7 @@ public class BinaryTypeInference {
     return Paths.get(this.workingDir.toString(), "lattice.json");
   }
 
-  private Map<String, DataType> produceArtifacts() throws IOException {
+  public Map<String, DataType> produceArtifacts() throws IOException {
     GetBinaryJson ir_generator = new GetBinaryJson(this.prog);
     ir_generator.generateJSONIR(this.getIROut());
     var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
@@ -83,15 +83,14 @@ public class BinaryTypeInference {
   }
 
   private void getCtypes() throws IOException {
-    var runner =
-        new BinaryTypeInferenceRunner(
-            this.getTypeInferenceToolPath(),
-            this.getBinaryPath(),
-            this.getIROut(),
-            this.getLatticeJsonPath(),
-            this.getAdditionalConstraintsPath(),
-            this.getInterestingTidsPath(),
-            this.getCtypesOutPath());
+    var runner = new BinaryTypeInferenceRunner(
+        this.getTypeInferenceToolPath(),
+        this.getBinaryPath(),
+        this.getIROut(),
+        this.getLatticeJsonPath(),
+        this.getAdditionalConstraintsPath(),
+        this.getInterestingTidsPath(),
+        this.getCtypesOutPath());
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
@@ -104,11 +103,10 @@ public class BinaryTypeInference {
 
   private void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException {
-    var ty_lib =
-        TypeLibrary.parseFromInputStream(
-            new FileInputStream(this.getCtypesOutPath().toFile()),
-            constants,
-            DefaultDataType.dataType);
+    var ty_lib = TypeLibrary.parseFromInputStream(
+        new FileInputStream(this.getCtypesOutPath().toFile()),
+        constants,
+        DefaultDataType.dataType);
 
     var mapping = ty_lib.buildMapping();
 

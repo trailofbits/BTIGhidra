@@ -38,7 +38,7 @@ class PreservedFunctionList {
 
   private final Set<Function> preservedFunctions;
 
-  private PreservedFunctionList(Set<Function> preservedFunctions) {
+  PreservedFunctionList(Set<Function> preservedFunctions) {
     this.preservedFunctions = preservedFunctions;
   }
 
@@ -57,14 +57,13 @@ class PreservedFunctionList {
     try {
       var fl = new FileReader(file_path);
       var lines = new BufferedReader(fl).lines();
-      var res =
-          Optional.of(
-              new PreservedFunctionList(
-                  lines
-                      .map((String line) -> PreservedFunctionList.parseLineToFunction(prog, line))
-                      .filter((var opt) -> opt.isPresent())
-                      .map((var opt) -> opt.get())
-                      .collect(Collectors.toSet())));
+      var res = Optional.of(
+          new PreservedFunctionList(
+              lines
+                  .map((String line) -> PreservedFunctionList.parseLineToFunction(prog, line))
+                  .filter((var opt) -> opt.isPresent())
+                  .map((var opt) -> opt.get())
+                  .collect(Collectors.toSet())));
       fl.close();
       return res;
     } catch (IOException e) {
@@ -153,9 +152,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
       return false;
     }
 
-    var maybe_preserved =
-        PreservedFunctionList.parseTargetFunctionListFile(
-            program, this.opts.preserved_functions_file.get());
+    var maybe_preserved = PreservedFunctionList.parseTargetFunctionListFile(
+        program, this.opts.preserved_functions_file.get());
 
     if (maybe_preserved.isEmpty()) {
       return false;
