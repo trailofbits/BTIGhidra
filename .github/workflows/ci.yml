@@ -19,7 +19,7 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
           # Check markdown links
           sudo npm install -g markdown-link-check
-          suto apt-get update
+          sudo apt-get update
           sudo apt-get install -y souffle
 
       - name: Install stable rust
@@ -27,7 +27,7 @@ jobs:
         with:
             toolchain: stable
             override: true
-            
+
       - name: 'Lint Markdown'
         run: |
           find . -name "*.md" -exec markdown-link-check {} \;
