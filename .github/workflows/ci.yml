@@ -19,20 +19,18 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
           # Check markdown links
           sudo npm install -g markdown-link-check
+          curl -s https://packagecloud.io/install/repositories/souffle-lang/souffle/script.deb.sh | sudo bash
+          sudo apt-get install -y souffle
+
+      - name: Install stable rust
+        uses: actions-rs/toolchain@v1.0.6
+        with:
+            toolchain: stable
+            override: true
 
       - name: 'Lint Markdown'
         run: |
           find . -name "*.md" -exec markdown-link-check {} \;
-
-      - name: Pull Private Submodule CWE_Checker
-        env:
-          SSHK: ${{ secrets.SUB_CWE_CHECKER }}
-        run: |
-          mkdir -p $HOME/.ssh
-          echo "$SSHK" > $HOME/.ssh/ssh.key
-          chmod 600 $HOME/.ssh/ssh.key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init -- ./cwe_checker
 
       - name: Pull Private Submodule binary_type_inference
         env:
@@ -43,6 +41,17 @@ jobs:
           chmod 600 $HOME/.ssh/ssh.key
           export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
           git submodule update --init -- ./binary_type_inference
+
+      - name: Pull Private Submodule CWE_Checker
+        env:
+          SSHK: ${{ secrets.SUB_CWE_CHECKER }}
+        run: |
+          cd ./binary_type_inference
+          mkdir -p $HOME/.ssh
+          echo "$SSHK" > $HOME/.ssh/ssh.key
+          chmod 600 $HOME/.ssh/ssh.key
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+          git submodule update --init -- ./cwe_checker
 
       - uses: actions/setup-java@v2
         with:
@@ -60,4 +69,4 @@ jobs:
 
       - name: 'Lint, Build, and Test BTI'
         run: |
-          just test
+          just platform=linux_x86_64 install-native test
