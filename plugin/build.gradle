@@ -179,8 +179,7 @@ spotless {
     java {
         target 'src/*/java/**/*.java', 'ghidra_scripts/*.java'
         importOrder() // standard import order
-        targetExclude('src/main/java/ctypes/Ctypes.java')
-        targetExclude('src/main/java/constraints/Constraints.java')
+        targetExclude('src/main/java/ctypes/Ctypes.java', 'src/main/java/constraints/Constraints.java')
         removeUnusedImports()
 
         googleJavaFormat('1.13.0')
