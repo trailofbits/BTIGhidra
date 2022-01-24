@@ -17,6 +17,7 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -161,7 +162,7 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
     var preserved = maybe_preserved.get();
 
-    var bti = new BinaryTypeInference(program, preserved);
+    var bti = new BinaryTypeInference(program, preserved, new ArrayList<>());
 
     try {
       bti.run();

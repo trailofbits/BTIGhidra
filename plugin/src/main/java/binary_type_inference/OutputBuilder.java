@@ -84,10 +84,9 @@ public class OutputBuilder {
       arr.add(pair);
     }
 
-    var all_vars =
-        this.lattice.stream()
-            .flatMap((Pair<String, String> rel) -> Arrays.asList(rel.first, rel.second).stream())
-            .collect(Collectors.toSet());
+    var all_vars = this.lattice.stream()
+        .flatMap((Pair<String, String> rel) -> Arrays.asList(rel.first, rel.second).stream())
+        .collect(Collectors.toSet());
 
     for (var v : all_vars) {
       var pair = new JsonArray();
@@ -115,7 +114,9 @@ public class OutputBuilder {
     ByteBuffer length_buf = ByteBuffer.wrap(length_buffer);
     length_buf.order(ByteOrder.BIG_ENDIAN);
     for (var cons : messages) {
+      length_buf.position(0);
       length_buf.putInt(cons.getSerializedSize());
+      file.write(length_buf.array());
       cons.writeTo(file);
     }
   }

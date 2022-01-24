@@ -1,5 +1,6 @@
 package binary_type_inference;
 
+import ghidra.app.plugin.core.osgi.BundleHost;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressFactory;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
@@ -12,8 +13,12 @@ import ghidra.util.InvalidNameException;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.VersionException;
+
+import static org.junit.Assert.assertTrue;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
@@ -44,8 +49,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
   @Test
   public void generateListInputs()
-      throws IOException, InvalidNameException, DuplicateNameException, CancelledException,
-      VersionException, MemoryAccessException {
+      throws Exception {
     // For future reference, to get processor:
     // Processor.findOrPossiblyCreateProcessor("x86")
     LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
@@ -68,7 +72,11 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     PreservedFunctionList pl = new PreservedFunctionList(pres);
 
-    var inf = new BinaryTypeInference(program, pl);
+    var inf = new BinaryTypeInference(program, pl,
+        Arrays.asList("/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"));
     inf.produceArtifacts();
+
+    assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
+    assertTrue("additional constraints file exisits", inf.getAdditionalConstraintsPath().toFile().exists());
   }
 }

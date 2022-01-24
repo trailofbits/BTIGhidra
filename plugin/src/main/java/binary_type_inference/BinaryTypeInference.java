@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Map;
 
 /*
@@ -31,11 +32,13 @@ public class BinaryTypeInference {
   private final Program prog;
   private final PreservedFunctionList preserved;
   private final Path workingDir;
+  private final List<String> extra_script_dirs;
 
-  public BinaryTypeInference(Program prog, PreservedFunctionList preserved) {
+  public BinaryTypeInference(Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
     this.prog = prog;
     this.preserved = preserved;
     this.workingDir = Files.createTempDir().toPath();
+    this.extra_script_dirs = extra_script_dirs;
   }
 
   private Path getTypeInferenceToolPath() throws OSFileNotFoundException {
@@ -43,11 +46,11 @@ public class BinaryTypeInference {
         Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath());
   }
 
-  private Path getBinaryPath() {
+  public Path getBinaryPath() {
     return Paths.get(this.prog.getExecutablePath());
   }
 
-  private Path getIROut() {
+  public Path getIROut() {
     return Paths.get(this.workingDir.toString(), "ir.json");
   }
 
@@ -55,20 +58,20 @@ public class BinaryTypeInference {
     return new FileOutputStream(target.toFile());
   }
 
-  private Path getAdditionalConstraintsPath() {
+  public Path getAdditionalConstraintsPath() {
     return Paths.get(this.workingDir.toString(), "additional_constraints.pb");
   }
 
-  private Path getInterestingTidsPath() {
+  public Path getInterestingTidsPath() {
     return Paths.get(this.workingDir.toString(), "interesting_tids.pb");
   }
 
-  private Path getLatticeJsonPath() {
+  public Path getLatticeJsonPath() {
     return Paths.get(this.workingDir.toString(), "lattice.json");
   }
 
-  public Map<String, DataType> produceArtifacts() throws IOException {
-    GetBinaryJson ir_generator = new GetBinaryJson(this.prog);
+  public Map<String, DataType> produceArtifacts() throws Exception {
+    GetBinaryJson ir_generator = new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
     var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
     var output_builder = lattice_gen.getOutputBuilder();
@@ -78,7 +81,7 @@ public class BinaryTypeInference {
     return output_builder.getTypeConstantMap();
   }
 
-  private Path getCtypesOutPath() {
+  public Path getCtypesOutPath() {
     return Paths.get(this.workingDir.toString(), "ctypes.pb");
   }
 
@@ -133,7 +136,7 @@ public class BinaryTypeInference {
     }
   }
 
-  public void run() throws IOException, InvalidInputException {
+  public void run() throws Exception {
     var ty_consts = this.produceArtifacts();
     this.getCtypes();
     this.applyCtype(ty_consts);

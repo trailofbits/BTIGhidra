@@ -80,11 +80,10 @@ public class TypeLattice {
 
   private static Retval constraintsForReturn(Tid tid, DataType ty) {
     var func_tvar = TypeLattice.tid_to_tvar(tid);
-    var dtv =
-        DerivedTypeVariable.newBuilder()
-            .setBaseVar(func_tvar)
-            .addFieldLabels(FieldLabel.newBuilder().setOutParam(0))
-            .build();
+    var dtv = DerivedTypeVariable.newBuilder()
+        .setBaseVar(func_tvar)
+        .addFieldLabels(FieldLabel.newBuilder().setOutParam(0))
+        .build();
 
     var repr_for_ty = TypeLattice.representation_for_datatype(ty);
 
@@ -97,11 +96,10 @@ public class TypeLattice {
   private static Retval constraintsForParam(int idx, Tid tid, DataType ty) {
     var repr = representation_for_datatype(ty);
 
-    var new_cons =
-        SubtypingConstraint.newBuilder()
-            .setLhs(repr.first)
-            .setRhs(dtv_for_param_of_tid(idx, tid))
-            .build();
+    var new_cons = SubtypingConstraint.newBuilder()
+        .setLhs(repr.first)
+        .setRhs(dtv_for_param_of_tid(idx, tid))
+        .build();
 
     repr.second.addSubtyCons(new_cons);
     return repr.second;
@@ -119,7 +117,12 @@ public class TypeLattice {
   }
 
   private static String data_type_to_type_variable(DataType dt) {
-    return "data_type_with_id_" + dt.getUniversalID().toString();
+    if (dt.getUniversalID() != null) {
+      return "data_type_with_id_" + dt.getUniversalID().toString();
+    } else {
+      return "data_type_with_display_name" + dt.getPathName().toString().replaceAll("/", "") + "_"
+          + dt.getDisplayName();
+    }
   }
 
   private static DerivedTypeVariable.Builder data_type_to_derived_variable(DataType dt) {
@@ -150,18 +153,14 @@ public class TypeLattice {
   }
 
   private static Pair<DerivedTypeVariable, Retval> representation_for_pointer(Pointer ptr) {
-    var load_repr =
-        TypeLattice.get_ptr_dtv_for_type(
-            ptr, constraints.Constraints.Pointer.POINTER_LOAD_UNSPECIFIED);
-    var store_repr =
-        TypeLattice.get_ptr_dtv_for_type(ptr, constraints.Constraints.Pointer.POINTER_STORE);
+    var load_repr = TypeLattice.get_ptr_dtv_for_type(
+        ptr, constraints.Constraints.Pointer.POINTER_LOAD_UNSPECIFIED);
+    var store_repr = TypeLattice.get_ptr_dtv_for_type(ptr, constraints.Constraints.Pointer.POINTER_STORE);
 
     var pointedToRes = TypeLattice.representation_for_datatype(ptr.getDataType());
 
-    var load_cons =
-        SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(load_repr).build();
-    var store_cons =
-        SubtypingConstraint.newBuilder().setLhs(store_repr).setRhs(pointedToRes.first).build();
+    var load_cons = SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(load_repr).build();
+    var store_cons = SubtypingConstraint.newBuilder().setLhs(store_repr).setRhs(pointedToRes.first).build();
 
     var retval = pointedToRes.second;
     retval.addSubtyCons(load_cons);
@@ -179,15 +178,14 @@ public class TypeLattice {
 
       tot.merge(repr_of_field.second);
       var struct_var = TypeLattice.data_type_to_derived_variable(struct);
-      var field_access =
-          struct_var
-              .addFieldLabels(
-                  FieldLabel.newBuilder()
-                      .setField(
-                          Field.newBuilder()
-                              .setBitSize(comp.getLength() * 8)
-                              .setByteOffset(comp.getOffset())))
-              .build();
+      var field_access = struct_var
+          .addFieldLabels(
+              FieldLabel.newBuilder()
+                  .setField(
+                      Field.newBuilder()
+                          .setBitSize(comp.getLength() * 8)
+                          .setByteOffset(comp.getOffset())))
+          .build();
 
       tot.addSubtyCons(
           SubtypingConstraint.newBuilder()
@@ -242,9 +240,8 @@ public class TypeLattice {
         var dts = maybe_res.get();
         return dts.stream()
             .map(
-                (DataType things_greater) ->
-                    new Pair<String, String>(
-                        const_str, TypeLattice.data_type_to_type_variable(things_greater)));
+                (DataType things_greater) -> new Pair<String, String>(
+                    const_str, TypeLattice.data_type_to_type_variable(things_greater)));
       }
     }
 
@@ -252,30 +249,27 @@ public class TypeLattice {
   }
 
   private Stream<Pair<String, String>> constantsToLattice(Set<DataType> constants) {
-    var bottom_cons =
-        constants.stream()
-            .map(
-                (DataType target_constant) -> {
-                  return new Pair<String, String>(
-                      OutputBuilder.BOTTOM_STRING,
-                      TypeLattice.data_type_to_type_variable(target_constant));
-                });
+    var bottom_cons = constants.stream()
+        .map(
+            (DataType target_constant) -> {
+              return new Pair<String, String>(
+                  OutputBuilder.BOTTOM_STRING,
+                  TypeLattice.data_type_to_type_variable(target_constant));
+            });
 
-    var top_cons =
-        constants.stream()
-            .map(
-                (DataType target_constant) -> {
-                  return new Pair<String, String>(
-                      TypeLattice.data_type_to_type_variable(target_constant),
-                      OutputBuilder.TOP_STRING);
-                });
+    var top_cons = constants.stream()
+        .map(
+            (DataType target_constant) -> {
+              return new Pair<String, String>(
+                  TypeLattice.data_type_to_type_variable(target_constant),
+                  OutputBuilder.TOP_STRING);
+            });
 
-    var generated_cons =
-        constants.stream()
-            .flatMap(
-                (DataType target_constant) -> {
-                  return this.applyLessThanStrategies(target_constant);
-                });
+    var generated_cons = constants.stream()
+        .flatMap(
+            (DataType target_constant) -> {
+              return this.applyLessThanStrategies(target_constant);
+            });
 
     return Stream.concat(Stream.concat(bottom_cons, top_cons), generated_cons);
   }
@@ -284,16 +278,14 @@ public class TypeLattice {
     var collected_res = this.collectSignatureConstraints();
 
     var constraints = collected_res.getConstraints();
-    var lattice =
-        this.constantsToLattice(collected_res.getType_constants()).collect(Collectors.toList());
+    var lattice = this.constantsToLattice(collected_res.getType_constants()).collect(Collectors.toList());
     var interesting_tids = this.fixed_signatures.keySet().stream().collect(Collectors.toList());
 
-    var const_map =
-        collected_res.getType_constants().stream()
-            .collect(
-                Collectors.toMap(
-                    (DataType ty_const) -> TypeLattice.data_type_to_type_variable(ty_const),
-                    (DataType ty_const) -> ty_const));
+    var const_map = collected_res.getType_constants().stream()
+        .collect(
+            Collectors.toMap(
+                (DataType ty_const) -> TypeLattice.data_type_to_type_variable(ty_const),
+                (DataType ty_const) -> ty_const));
 
     return new OutputBuilder(lattice, constraints, interesting_tids, const_map);
   }
