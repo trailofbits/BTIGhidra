@@ -12,10 +12,10 @@ build-native-datalog: build-native-binary
 
 
 install-native: build-native-datalog build-native-binary
-  rm ./plugin/os/mac_arm_64/json_to_constraints
-  rm ./plugin/os/mac_arm_64/lowertypes
-  cp ./binary_type_inference/target/release/json_to_constraints ./plugin/os/mac_arm_64/
-  cp ./binary_type_inference/target/release/lowertypes ./plugin/os/mac_arm_64/
+  rm ./plugin/os/{{os}}/json_to_constraints
+  rm ./plugin/os/{{os}}/lowertypes
+  cp ./binary_type_inference/target/release/json_to_constraints ./plugin/os/{{os}}/
+  cp ./binary_type_inference/target/release/lowertypes ./plugin/os/{{os}}/
 
 format:
   ./plugin/gradlew --project-dir ./plugin spotlessApply

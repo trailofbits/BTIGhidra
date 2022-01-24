@@ -61,4 +61,4 @@ jobs:
 
       - name: 'Lint, Build, and Test BTI'
         run: |
-          just test
+          just os=linx_x86_64 test
