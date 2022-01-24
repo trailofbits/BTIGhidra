@@ -19,6 +19,10 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
           # Check markdown links
           sudo npm install -g markdown-link-check
+          sudo apt-get install -y souffle
+
+      - name: rust-toolchain
+        uses: actions-rs/toolchain@v1.0.6
 
       - name: 'Lint Markdown'
         run: |
@@ -61,4 +65,4 @@ jobs:
 
       - name: 'Lint, Build, and Test BTI'
         run: |
-          just platform=linux_x86_64 test
+          just platform=linux_x86_64 install-native test
