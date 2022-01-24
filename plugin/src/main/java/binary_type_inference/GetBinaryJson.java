@@ -43,11 +43,14 @@ public class GetBinaryJson {
 
   void generateJSONIR(Path target_out) throws Exception {
     var st = new GhidraState(tool, project, prog, loc, sel, highlight);
-
-    GhidraScriptUtil.initialize(new BundleHost(), this.extra_script_dirs);
+    // TODO(ian): hack to check if util has been initialized
+    if (GhidraScriptUtil.getBundleHost() == null) {
+      GhidraScriptUtil.initialize(new BundleHost(), this.extra_script_dirs);
+    }
     var scr = GhidraScriptUtil.findScriptByName("PcodeExtractor");
     Objects.requireNonNull(scr);
     var prov = GhidraScriptUtil.getProvider(scr);
+
     var inst = prov.getScriptInstance(scr, new PrintWriter(System.err));
     String[] args = { target_out.toString() };
     inst.setScriptArgs(args);

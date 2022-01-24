@@ -117,7 +117,7 @@ public class TypeLibrary {
   }
 
   private DataType build_primitive(Primitive prim) {
-    return this.type_constants.getOrDefault(prim, this.unknownType);
+    return this.type_constants.getOrDefault(prim.getTypeConstant(), this.unknownType);
   }
 
   class ModifiablePointer extends PointerDataType {
@@ -132,13 +132,9 @@ public class TypeLibrary {
   }
 
   private DataType build_pointer(Pointer ptr, int prev_index) {
-
-    var new_ptr = new ModifiablePointer(this.dtm);
-
-    var pointed_to = this.rec_build_node_type(ptr.getToType(), prev_index, new_ptr);
-
-    new_ptr.setReferencedDataType(pointed_to);
-    return new_ptr;
+    // TODO(ian): evaluate if this call is safe, can pointers loop?
+    var pointed_to = this.build_node_type(ptr.getToType());
+    return new PointerDataType(pointed_to);
   }
 
   private static class InsertedField {
@@ -165,15 +161,7 @@ public class TypeLibrary {
         .sorted((Field f1, Field f2) -> Integer.compare(f1.getByteOffset(), f2.getByteOffset()))
         .collect(Collectors.toList());
 
-    var size = 0;
-    if (!flds.isEmpty()) {
-      var sz = flds.stream().map((Field fld) -> fld.getByteOffset() + fld.getBitSize() * 8).max(Integer::compare);
-      if (sz.isPresent()) {
-        size = sz.get();
-      }
-    }
-
-    var st = new StructureDataType("struct_for_node_" + Integer.toString(node_index), size);
+    var st = new StructureDataType("struct_for_node_" + Integer.toString(node_index), 0);
 
     for (var fld : flds) {
       var min_unoccupied = 0;
@@ -198,7 +186,7 @@ public class TypeLibrary {
     for (var to_add : new_fld_list) {
       st.add(
           to_add.second,
-          to_add.first.bit_size * 8,
+          to_add.first.bit_size / 8,
           "field_at_" + Integer.toString(to_add.first.byte_offset),
           "autogen");
     }

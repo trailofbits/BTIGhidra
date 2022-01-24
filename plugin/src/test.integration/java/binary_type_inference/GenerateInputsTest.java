@@ -3,6 +3,9 @@ package binary_type_inference;
 import ghidra.app.plugin.core.osgi.BundleHost;
 import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressFactory;
+import ghidra.program.model.data.AbstractIntegerDataType;
+import ghidra.program.model.data.Pointer;
+import ghidra.program.model.data.Structure;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
@@ -14,6 +17,7 @@ import ghidra.util.exception.CancelledException;
 import ghidra.util.exception.DuplicateNameException;
 import ghidra.util.exception.VersionException;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import java.io.File;
@@ -86,6 +90,33 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     inf.applyCtype(const_types);
 
     var hopefully_fixed = program.getFunctionManager().getFunctionAt(program.getAddressFactory().getAddress("0x0000"));
-    System.out.println(hopefully_fixed.getSignature());
+    var target_sig = hopefully_fixed.getSignature();
+
+    var ptr = target_sig.getArguments()[0];
+
+    assertTrue("Arg to linked list func is not pointer", ptr.getDataType() instanceof Pointer);
+
+    var pointed_to = ((Pointer) ptr.getDataType()).getDataType();
+
+    Objects.requireNonNull(pointed_to);
+    System.out.println(pointed_to);
+
+    assertTrue("The pointer does not point to a structure", pointed_to instanceof Structure);
+
+    var struct = (Structure) pointed_to;
+
+    assertEquals(8, struct.getLength());
+
+    assertEquals(2, struct.getNumComponents());
+
+    var should_be_self_pointer = struct.getComponent(0).getDataType();
+
+    assertTrue("First field is not pointer", should_be_self_pointer instanceof Pointer);
+
+    var self_pointer = (Pointer) should_be_self_pointer;
+
+    assertEquals(struct, self_pointer.getDataType());
+
+    assertTrue("Second field is not integer", struct.getComponent(1).getDataType() instanceof AbstractIntegerDataType);
   }
 }

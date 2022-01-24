@@ -150,6 +150,7 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     // analysis succeeded.
 
     if (this.opts.preserved_functions_file.isEmpty()) {
+      log.appendException(new RuntimeException("Didnt get preserved functions file"));
       return false;
     }
 
@@ -167,6 +168,7 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     try {
       bti.run();
     } catch (Exception e) {
+      log.appendException(e);
       return false;
     }
 
