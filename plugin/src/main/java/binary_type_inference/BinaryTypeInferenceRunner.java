@@ -26,11 +26,13 @@ public class BinaryTypeInferenceRunner {
   /**
    * Initialize the Binary Type Inference class and use the tool specified.
    *
-   * @param typeInferenceToolLocation Path to the type inference tool
-   * @param programLocation Path to the file to perform type inference
-   * @param irLocation Path to the CWE Checker IR file
-   * @param typeLatticeLocation Path to the type lattice file
-   * @param additionalConstraintsLocation Path to the file containing additional constraints
+   * @param typeInferenceToolLocation     Path to the type inference tool
+   * @param programLocation               Path to the file to perform type
+   *                                      inference
+   * @param irLocation                    Path to the CWE Checker IR file
+   * @param typeLatticeLocation           Path to the type lattice file
+   * @param additionalConstraintsLocation Path to the file containing additional
+   *                                      constraints
    */
   public BinaryTypeInferenceRunner(
       /* Program program, */
@@ -66,16 +68,17 @@ public class BinaryTypeInferenceRunner {
    */
   public TypeInferenceResult inferTypes() throws IOException {
     // Call binary type inference tool with arguments
-    ProcessBuilder bldr =
-        new ProcessBuilder(
-            typeInferenceTool.toAbsolutePath().toString(),
-            programLocation.toAbsolutePath().toString(),
-            irLocation.toAbsolutePath().toString(),
-            typeLatticeLocation.toAbsolutePath().toString(),
-            additionalConstraintsLocation.toAbsolutePath().toString(),
-            this.interesting_vars_file.toString(),
-            "--out",
-            this.out_protobuf.toString());
+    ProcessBuilder bldr = new ProcessBuilder(
+        typeInferenceTool.toAbsolutePath().toString(),
+        programLocation.toAbsolutePath().toString(),
+        irLocation.toAbsolutePath().toString(),
+        typeLatticeLocation.toAbsolutePath().toString(),
+        additionalConstraintsLocation.toAbsolutePath().toString(),
+        this.interesting_vars_file.toString(),
+        "--out",
+        this.out_protobuf.toString());
+
+    System.out.println(bldr.command());
 
     var bti = bldr.start();
 
@@ -84,17 +87,4 @@ public class BinaryTypeInferenceRunner {
     return ret;
   }
 
-  /**
-   * Infer and apply types to the Ghidra program.
-   *
-   * @return Whether the type inference and application completed successfully.
-   */
-  public boolean inferAndApplyTypes() throws IOException {
-    TypeInferenceResult result = inferTypes();
-    if (!result.success()) {
-      return false;
-    }
-    // TODO Do something with output of type inference
-    return true;
-  }
 }

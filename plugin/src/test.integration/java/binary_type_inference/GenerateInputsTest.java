@@ -74,9 +74,18 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     var inf = new BinaryTypeInference(program, pl,
         Arrays.asList("/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"));
-    inf.produceArtifacts();
+    var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
     assertTrue("additional constraints file exisits", inf.getAdditionalConstraintsPath().toFile().exists());
+
+    inf.getCtypes();
+
+    assertTrue("Ctypes dont exist", inf.getCtypesOutPath().toFile().exists());
+
+    inf.applyCtype(const_types);
+
+    var hopefully_fixed = program.getFunctionManager().getFunctionAt(program.getAddressFactory().getAddress("0x0000"));
+    System.out.println(hopefully_fixed.getSignature());
   }
 }

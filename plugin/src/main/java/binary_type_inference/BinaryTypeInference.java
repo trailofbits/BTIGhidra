@@ -9,6 +9,8 @@ import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
 import ghidra.util.exception.InvalidInputException;
+
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -38,6 +40,7 @@ public class BinaryTypeInference {
     this.prog = prog;
     this.preserved = preserved;
     this.workingDir = Files.createTempDir().toPath();
+    // this.workingDir = Paths.get("/tmp");
     this.extra_script_dirs = extra_script_dirs;
   }
 
@@ -77,7 +80,7 @@ public class BinaryTypeInference {
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
-    output_builder.buildLattice(this.openOutput(this.getLatticeJsonPath()));
+    output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
   }
 
@@ -85,7 +88,7 @@ public class BinaryTypeInference {
     return Paths.get(this.workingDir.toString(), "ctypes.pb");
   }
 
-  private void getCtypes() throws IOException {
+  public void getCtypes() throws IOException {
     var runner = new BinaryTypeInferenceRunner(
         this.getTypeInferenceToolPath(),
         this.getBinaryPath(),
@@ -100,11 +103,11 @@ public class BinaryTypeInference {
 
       // throw exception
       throw new RuntimeException(
-          "Running type inference failed " + ty_result.getStderr().toString());
+          "Running type inference failed " + new String(ty_result.getStderr().readAllBytes()));
     }
   }
 
-  private void applyCtype(Map<String, DataType> constants)
+  public void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException {
     var ty_lib = TypeLibrary.parseFromInputStream(
         new FileInputStream(this.getCtypesOutPath().toFile()),

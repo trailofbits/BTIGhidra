@@ -9,6 +9,9 @@ import constraints.Constraints.SubtypingConstraint;
 import ctypes.Ctypes.Tid;
 import generic.stl.Pair;
 import ghidra.program.model.data.DataType;
+
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
@@ -66,22 +69,26 @@ public class OutputBuilder {
   }
 
   // TODO(ian): Code gen this with jtd.
-  void buildLattice(OutputStream file) throws IOException {
+  void buildLattice(File file) throws IOException {
     JsonObject jobj = new JsonObject();
 
-    var bot = new JsonPrimitive("bottom");
-    var top = new JsonPrimitive("T");
+    var bot = new JsonPrimitive(BOTTOM_STRING);
+    var top = new JsonPrimitive(TOP_STRING);
 
-    jobj.add(TOP_STRING, top);
-    jobj.add(BOTTOM_STRING, bot);
+    jobj.add("top_handle", top);
+    jobj.add("bottom_handle", bot);
 
     JsonArray arr = new JsonArray();
 
     for (var lower_handle : this.lattice) {
       var pair = new JsonArray();
-      pair.add(lower_handle.first);
-      pair.add(lower_handle.second);
-      arr.add(pair);
+
+      if (lower_handle.first != lower_handle.second) {
+        pair.add(lower_handle.first);
+        pair.add(lower_handle.second);
+
+        arr.add(pair);
+      }
     }
 
     var all_vars = this.lattice.stream()
@@ -90,22 +97,30 @@ public class OutputBuilder {
 
     for (var v : all_vars) {
       var pair = new JsonArray();
-      pair.add(bot);
-      pair.add(new JsonPrimitive(v));
-      arr.add(pair);
+
+      if (BOTTOM_STRING != v) {
+        pair.add(bot);
+        pair.add(new JsonPrimitive(v));
+        arr.add(pair);
+      }
     }
 
     for (var v : all_vars) {
-      var pair = new JsonArray();
-      pair.add(new JsonPrimitive(v));
-      pair.add(top);
-      arr.add(pair);
+      if (TOP_STRING != v) {
+        var pair = new JsonArray();
+        pair.add(new JsonPrimitive(v));
+        pair.add(top);
+        arr.add(pair);
+      }
     }
 
     jobj.add("less_than_relations_between_handles", arr);
 
     Gson gs = new Gson();
-    gs.toJson(jobj, new OutputStreamWriter(file));
+    System.out.println(jobj.toString());
+    var wrtr = new FileWriter(file);
+    gs.toJson(jobj, wrtr);
+    wrtr.close();
   }
 
   static <T extends MessageLite> void writeLengthDelimitedMessages(
@@ -123,9 +138,11 @@ public class OutputBuilder {
 
   void buildAdditionalConstraints(OutputStream file) throws IOException {
     OutputBuilder.writeLengthDelimitedMessages(file, this.additional_constraints);
+    file.close();
   }
 
   void buildInterestingTids(OutputStream file) throws IOException {
     OutputBuilder.writeLengthDelimitedMessages(file, this.interesting_tids);
+    file.close();
   }
 }
