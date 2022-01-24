@@ -14,8 +14,8 @@ build-native-datalog: build-native-binary
 
 
 install-native: build-native-datalog build-native-binary
-  rm ./plugin/os/{{platform}}/json_to_constraints
-  rm ./plugin/os/{{platform}}/lowertypes
+  rm -f ./plugin/os/{{platform}}/json_to_constraints
+  rm -f ./plugin/os/{{platform}}/lowertypes
   cp ./binary_type_inference/target/release/json_to_constraints ./plugin/os/{{platform}}/
   cp ./binary_type_inference/target/release/lowertypes ./plugin/os/{{platform}}/
 
