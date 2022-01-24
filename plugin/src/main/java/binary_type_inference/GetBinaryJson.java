@@ -9,16 +9,10 @@ import ghidra.program.model.listing.Program;
 import ghidra.program.util.ProgramLocation;
 import ghidra.program.util.ProgramSelection;
 import ghidra.util.task.TaskMonitor;
-
 import java.io.PrintWriter;
 import java.nio.file.Path;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
-
-import org.apache.commons.lang.NotImplementedException;
-
-import aQute.bnd.service.Plugin;
 
 public class GetBinaryJson {
 
@@ -30,8 +24,14 @@ public class GetBinaryJson {
   private final PluginTool tool;
   private final List<String> extra_script_dirs;
 
-  public GetBinaryJson(PluginTool tool, Program prog, Project project, ProgramLocation loc, ProgramSelection sel,
-      ProgramSelection highlight, List<String> extra_script_dirs) {
+  public GetBinaryJson(
+      PluginTool tool,
+      Program prog,
+      Project project,
+      ProgramLocation loc,
+      ProgramSelection sel,
+      ProgramSelection highlight,
+      List<String> extra_script_dirs) {
     this.prog = prog;
     this.project = project;
     this.loc = loc;
@@ -52,7 +52,7 @@ public class GetBinaryJson {
     var prov = GhidraScriptUtil.getProvider(scr);
 
     var inst = prov.getScriptInstance(scr, new PrintWriter(System.err));
-    String[] args = { target_out.toString() };
+    String[] args = {target_out.toString()};
     inst.setScriptArgs(args);
     inst.execute(st, TaskMonitor.DUMMY, new PrintWriter(System.err));
   }

@@ -9,8 +9,6 @@ import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
 import ghidra.util.exception.InvalidInputException;
-
-import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
@@ -37,7 +35,8 @@ public class BinaryTypeInference {
   private final Path workingDir;
   private final List<String> extra_script_dirs;
 
-  public BinaryTypeInference(Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
+  public BinaryTypeInference(
+      Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
     this.prog = prog;
     this.preserved = preserved;
     this.workingDir = Files.createTempDir().toPath();
@@ -75,13 +74,16 @@ public class BinaryTypeInference {
   }
 
   public Map<String, DataType> produceArtifacts() throws Exception {
-    GetBinaryJson ir_generator = new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
+    GetBinaryJson ir_generator =
+        new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
     var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
-    output_builder.addInterestingTids(Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
-        .map(PreservedFunctionList::functionToTid).collect(Collectors.toList()));
+    output_builder.addInterestingTids(
+        Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
+            .map(PreservedFunctionList::functionToTid)
+            .collect(Collectors.toList()));
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
@@ -92,14 +94,15 @@ public class BinaryTypeInference {
   }
 
   public void getCtypes() throws IOException {
-    var runner = new BinaryTypeInferenceRunner(
-        this.getTypeInferenceToolPath(),
-        this.getBinaryPath(),
-        this.getIROut(),
-        this.getLatticeJsonPath(),
-        this.getAdditionalConstraintsPath(),
-        this.getInterestingTidsPath(),
-        this.getCtypesOutPath());
+    var runner =
+        new BinaryTypeInferenceRunner(
+            this.getTypeInferenceToolPath(),
+            this.getBinaryPath(),
+            this.getIROut(),
+            this.getLatticeJsonPath(),
+            this.getAdditionalConstraintsPath(),
+            this.getInterestingTidsPath(),
+            this.getCtypesOutPath());
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
@@ -112,10 +115,12 @@ public class BinaryTypeInference {
 
   public void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException {
-    var ty_lib = TypeLibrary.parseFromInputStream(
-        new FileInputStream(this.getCtypesOutPath().toFile()),
-        constants,
-        DefaultDataType.dataType, this.prog.getDataTypeManager());
+    var ty_lib =
+        TypeLibrary.parseFromInputStream(
+            new FileInputStream(this.getCtypesOutPath().toFile()),
+            constants,
+            DefaultDataType.dataType,
+            this.prog.getDataTypeManager());
 
     var mapping = ty_lib.buildMapping();
 

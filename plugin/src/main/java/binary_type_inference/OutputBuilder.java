@@ -9,12 +9,10 @@ import constraints.Constraints.SubtypingConstraint;
 import ctypes.Ctypes.Tid;
 import generic.stl.Pair;
 import ghidra.program.model.data.DataType;
-
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
-import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
@@ -96,9 +94,10 @@ public class OutputBuilder {
       }
     }
 
-    var all_vars = this.lattice.stream()
-        .flatMap((Pair<String, String> rel) -> Arrays.asList(rel.first, rel.second).stream())
-        .collect(Collectors.toSet());
+    var all_vars =
+        this.lattice.stream()
+            .flatMap((Pair<String, String> rel) -> Arrays.asList(rel.first, rel.second).stream())
+            .collect(Collectors.toSet());
 
     for (var v : all_vars) {
       var pair = new JsonArray();
