@@ -76,9 +76,18 @@ class Retval {
 // Signatures are collected into constraints. When we no longer can emit a
 // constraint, we get a type constant for that data type.
 public class TypeLattice {
-    private Map<Tid, FunctionSignature> fixed_signatures;
+    private final Map<Tid, FunctionSignature> fixed_signatures;
 
-    private List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy;
+    private final List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy;
+
+
+
+    
+    public TypeLattice(Map<Tid, FunctionSignature> fixed_signatures,
+            List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy) {
+        this.fixed_signatures = fixed_signatures;
+        this.less_than_relation_strategy = less_than_relation_strategy;
+    }
 
     private static Retval constraintsForReturn(Tid tid, DataType ty) {
         var func_tvar = TypeLattice.tid_to_tvar(tid);

@@ -3,12 +3,14 @@ package binary_type_inference;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
+import java.util.Map;
 import java.util.stream.Collectors;
 
 import com.dropbox.core.DbxEntry.File;
@@ -24,11 +26,13 @@ import com.google.protobuf.MessageLite;
 import constraints.Constraints.SubtypingConstraint;
 import ctypes.Ctypes.Tid;
 import generic.stl.Pair;
+import ghidra.program.model.data.DataType;
 
 public class OutputBuilder {
     private final List<Pair<String, String>> lattice;
     private final List<SubtypingConstraint> additional_constraints;
     private final List<Tid> interesting_tids;
+    private final Map<String, DataType> type_constant_variable_to_datatype;
 
     public static final String BOTTOM_STRING = "bottom";
     public static final String TOP_STRING = "T";
@@ -56,14 +60,19 @@ public class OutputBuilder {
      */
 
     public OutputBuilder(List<Pair<String, String>> lattice, List<SubtypingConstraint> additional_constraints,
-            List<Tid> interesting_tids) {
+            List<Tid> interesting_tids, Map<String, DataType> type_constant_variable_to_datatype) {
         this.lattice = lattice;
         this.additional_constraints = additional_constraints;
         this.interesting_tids = interesting_tids;
+        this.type_constant_variable_to_datatype = type_constant_variable_to_datatype;
+    }
+
+    public Map<String, DataType> getTypeConstantMap() {
+        return this.type_constant_variable_to_datatype;
     }
 
     // TODO(ian): Code gen this with jtd.
-    void buildLattice(FileWriter file) throws IOException {
+    void buildLattice(OutputStream file) throws IOException {
         JsonObject jobj = new JsonObject();
 
         var bot = new JsonPrimitive("bottom");
@@ -102,7 +111,7 @@ public class OutputBuilder {
         jobj.add("less_than_relations_between_handles", arr);
 
         Gson gs = new Gson();
-        gs.toJson(jobj, file);
+        gs.toJson(jobj, new OutputStreamWriter(file));
     }
 
     static <T extends MessageLite> void writeLengthDelimitedMessages(

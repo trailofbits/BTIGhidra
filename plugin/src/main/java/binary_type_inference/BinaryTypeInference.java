@@ -1,100 +1,97 @@
 package binary_type_inference;
 
-import ctypes.Ctypes.CTypeMapping;
-import java.io.FileInputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.OutputStream;
 import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.Optional;
-import org.apache.commons.vfs2.FileNotFoundException;
+
+import ghidra.framework.Application;
+import ghidra.framework.OSFileNotFoundException;
+import ghidra.program.model.listing.Program;
+import com.google.common.io.Files;
+
+/*
+           Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
+            testDataDir.resolve("list_test.o"),
+            testDataDir.resolve("list_test.json"),
+            testDataDir.resolve("list_lattice.json"),
+            testDataDir.resolve("list_additional_constraints"),
+            testDataDir.resolve("list_test_interesting_variables.json"),
+            pb_pth*/
 
 public class BinaryTypeInference {
-  // Executable tool name to search for
-  public static final String DEFAULT_TOOL_NAME = "json_to_constraints";
+    private final Program prog;
+    private final PreservedFunctionList preserved;
+    private final Path workingDir;
 
-  // private final Program program;
-  private final Path typeInferenceTool;
-  private final Path programLocation;
-  private final Path irLocation;
-  private final Path typeLatticeLocation;
-  private final Path additionalConstraintsLocation;
-  private final Path interesting_vars_file;
-  private final Path out_protobuf;
-  private CTypeMapping ct;
-
-  private Optional<TypeInferenceResult> lastResult = Optional.empty();
-
-  /**
-   * Initialize the Binary Type Inference class and use the tool specified.
-   *
-   * @param typeInferenceToolLocation Path to the type inference tool
-   * @param programLocation Path to the file to perform type inference
-   * @param irLocation Path to the CWE Checker IR file
-   * @param typeLatticeLocation Path to the type lattice file
-   * @param additionalConstraintsLocation Path to the file containing additional constraints
-   */
-  public BinaryTypeInference(
-      /* Program program, */
-      Path typeInferenceToolLocation,
-      Path programLocation,
-      Path irLocation,
-      Path typeLatticeLocation,
-      Path additionalConstraintsLocation,
-      Path interesting_vars_file,
-      Path out_protobuf) {
-    // this.program = program;
-    this.typeInferenceTool = typeInferenceToolLocation;
-    this.programLocation = programLocation;
-    this.irLocation = irLocation;
-    this.typeLatticeLocation = typeLatticeLocation;
-    this.additionalConstraintsLocation = additionalConstraintsLocation;
-    this.interesting_vars_file = interesting_vars_file;
-    this.out_protobuf = out_protobuf;
-  }
-
-  public Optional<TypeInferenceResult> getLastResult() {
-    return lastResult;
-  }
-
-  public CTypeMapping getCtypeMapping() throws FileNotFoundException, IOException {
-    return CTypeMapping.parseFrom(new FileInputStream(this.out_protobuf.toFile()));
-  }
-
-  /**
-   * Run the type inference tool and collect the results
-   *
-   * @return The type inference result
-   */
-  public TypeInferenceResult inferTypes() throws IOException {
-    // Call binary type inference tool with arguments
-    ProcessBuilder bldr =
-        new ProcessBuilder(
-            typeInferenceTool.toAbsolutePath().toString(),
-            programLocation.toAbsolutePath().toString(),
-            irLocation.toAbsolutePath().toString(),
-            typeLatticeLocation.toAbsolutePath().toString(),
-            additionalConstraintsLocation.toAbsolutePath().toString(),
-            this.interesting_vars_file.toString(),
-            "--out",
-            this.out_protobuf.toString());
-
-    var bti = bldr.start();
-
-    var ret = new TypeInferenceResult(bti);
-    lastResult = Optional.of(ret);
-    return ret;
-  }
-
-  /**
-   * Infer and apply types to the Ghidra program.
-   *
-   * @return Whether the type inference and application completed successfully.
-   */
-  public boolean inferAndApplyTypes() throws IOException {
-    TypeInferenceResult result = inferTypes();
-    if (!result.success()) {
-      return false;
+    public BinaryTypeInference(Program prog, PreservedFunctionList preserved) {
+        this.prog = prog;
+        this.preserved = preserved;
+        this.workingDir = Files.createTempDir().toPath();
     }
-    // TODO Do something with output of type inference
-    return true;
-  }
+
+    private Path getTypeInferenceToolPath() throws OSFileNotFoundException {
+        return Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath());
+    }
+
+    private Path getBinaryPath() {
+        return Paths.get(this.prog.getExecutablePath());
+    }
+
+    private Path getIROut() {
+        return Paths.get(this.workingDir.toString(), "ir.json");
+    }
+
+    private FileOutputStream openOutput(Path target) throws FileNotFoundException {
+        return new FileOutputStream(target.toFile());
+    }
+
+    private Path getAdditionalConstraintsPath() {
+        return Paths.get(this.workingDir.toString(), "additional_constraints.pb");
+    }
+
+    private Path getInterestingTidsPath() {
+        return Paths.get(this.workingDir.toString(), "interesting_tids.pb");
+    }
+
+    private Path getLatticeJsonPath() {
+        return Paths.get(this.workingDir.toString(), "lattice.json");
+    }
+
+    private void produceArtifacts() throws IOException {
+        GetBinaryJson ir_generator = new GetBinaryJson(this.prog);
+        ir_generator.generateJSONIR(this.getIROut());
+        var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
+        var output_builder = lattice_gen.getOutputBuilder();
+        output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
+        output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
+        output_builder.buildLattice(this.openOutput(this.getLatticeJsonPath()));
+    }
+
+    private Path getCtypesOutPath() {
+        return Paths.get(this.workingDir.toString(), "ctypes.pb");
+    }
+
+    private void getCtypes() throws IOException {
+        var runner = new BinaryTypeInferenceRunner(this.getTypeInferenceToolPath(), this.getBinaryPath(),
+                this.getIROut(), this.getLatticeJsonPath(), this.getAdditionalConstraintsPath(),
+                this.getInterestingTidsPath(), this.getCtypesOutPath());
+
+        var ty_result = runner.inferTypes();
+        if (ty_result.success()) {
+
+        } else {
+            // throw exception
+        }
+    }
+
+    private void applyCtype() {
+
+    }
+
 }

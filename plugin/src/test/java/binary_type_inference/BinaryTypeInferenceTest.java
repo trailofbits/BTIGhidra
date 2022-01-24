@@ -33,8 +33,8 @@ public class BinaryTypeInferenceTest {
     var pb_pth = Path.of(result_protobuf.toString(), "ctypes.pb");
 
     var demo =
-        new BinaryTypeInference(
-            Path.of(Application.getOSFile(BinaryTypeInference.DEFAULT_TOOL_NAME).getAbsolutePath()),
+        new BinaryTypeInferenceRunner(
+            Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
             testDataDir.resolve("list_test.o"),
             testDataDir.resolve("list_test.json"),
             testDataDir.resolve("list_lattice.json"),
