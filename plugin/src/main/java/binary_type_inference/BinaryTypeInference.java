@@ -20,6 +20,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 /*
 Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
@@ -79,6 +80,8 @@ public class BinaryTypeInference {
     var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
+    output_builder.addInterestingTids(Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
+        .map(PreservedFunctionList::functionToTid).collect(Collectors.toList()));
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
@@ -112,7 +115,7 @@ public class BinaryTypeInference {
     var ty_lib = TypeLibrary.parseFromInputStream(
         new FileInputStream(this.getCtypesOutPath().toFile()),
         constants,
-        DefaultDataType.dataType);
+        DefaultDataType.dataType, this.prog.getDataTypeManager());
 
     var mapping = ty_lib.buildMapping();
 

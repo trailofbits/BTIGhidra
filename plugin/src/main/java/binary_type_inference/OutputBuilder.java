@@ -18,6 +18,7 @@ import java.io.OutputStreamWriter;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -62,6 +63,10 @@ public class OutputBuilder {
     this.additional_constraints = additional_constraints;
     this.interesting_tids = interesting_tids;
     this.type_constant_variable_to_datatype = type_constant_variable_to_datatype;
+  }
+
+  public void addInterestingTids(Collection<Tid> more_tids) {
+    this.interesting_tids.addAll(more_tids);
   }
 
   public Map<String, DataType> getTypeConstantMap() {
