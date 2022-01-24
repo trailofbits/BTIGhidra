@@ -73,7 +73,7 @@ class PreservedFunctionList {
         return this.preservedFunctions.contains(func);
     }
 
-    private static Tid functionToTid(Function func) {
+    public static Tid functionToTid(Function func) {
         // TODO(ian): This breaks a lot of abstraction layers.
         var addr = func.getEntryPoint().toString();
         var tid_name = String.format("sub_%s", addr);
@@ -157,6 +157,14 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
         var preserved = maybe_preserved.get();
 
-        
+        var bti = new BinaryTypeInference(program, preserved);
+
+        try {
+            bti.run();
+        } catch (Exception e) {
+            return false;
+        }
+
+        return true;
     }
 }

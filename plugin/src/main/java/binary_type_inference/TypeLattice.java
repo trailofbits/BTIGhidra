@@ -80,9 +80,6 @@ public class TypeLattice {
 
     private final List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy;
 
-
-
-    
     public TypeLattice(Map<Tid, FunctionSignature> fixed_signatures,
             List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy) {
         this.fixed_signatures = fixed_signatures;
@@ -261,7 +258,11 @@ public class TypeLattice {
         var lattice = this.constantsToLattice(collected_res.getType_constants()).collect(Collectors.toList());
         var interesting_tids = this.fixed_signatures.keySet().stream().collect(Collectors.toList());
 
-        return new OutputBuilder(lattice, constraints, interesting_tids);
+        var const_map = collected_res.getType_constants().stream()
+                .collect(Collectors.toMap((DataType ty_const) -> TypeLattice.data_type_to_type_variable(ty_const),
+                        (DataType ty_const) -> ty_const));
+
+        return new OutputBuilder(lattice, constraints, interesting_tids, const_map);
     }
 
 }
