@@ -32,7 +32,17 @@ jobs:
           echo "$SSHK" > $HOME/.ssh/ssh.key
           chmod 600 $HOME/.ssh/ssh.key
           export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init --recursive -- ./binary_type_inference
+          git submodule update --init -- ./binary_type_inference
+
+      - name: Pull Private Submodule CWE_Checker
+        env:
+          SSHK: ${{ secrets.SUB_CWE_CHECKER }}
+        run: |
+          mkdir -p $HOME/.ssh
+          echo "$SSHK" > $HOME/.ssh/ssh.key
+          chmod 600 $HOME/.ssh/ssh.key
+          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+          git submodule update --init -- ./binary_type_inference/cwe_checker
 
       - uses: actions/setup-java@v2
         with:

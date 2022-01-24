@@ -34,7 +34,9 @@ public class BinaryTypeInferenceTest {
 
     var demo =
         new BinaryTypeInferenceRunner(
-            Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
+            Path.of(
+                Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME)
+                    .getAbsolutePath()),
             testDataDir.resolve("list_test.o"),
             testDataDir.resolve("list_test.json"),
             testDataDir.resolve("list_lattice.json"),
