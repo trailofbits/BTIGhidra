@@ -69,12 +69,78 @@ dependencies {
     testRuntimeOnly files("lib")
 }
 
+// Copy native dependencies. Required for tests to find os-specific executables
+task copyNativeDependencies(type: Copy) {
+    from layout.projectDirectory.dir("os")
+    into layout.projectDirectory.dir("lib/os")
+}
+
+project.tasks.findByName('compileJava').dependsOn copyNativeDependencies
+
+sourceSets {
+    main {
+        java {
+            srcDirs 'src/main/java'
+        }
+
+        proto {
+            // In addition to the default 'src/main/proto'
+            srcDir '../binary_type_inference/data_formats'
+            // In addition to the default '**/*.proto' (use with caution).
+            // Using an extension other than 'proto' is NOT recommended,
+            // because when proto files are published along with class files, we can
+            // only tell the type of a file from its extension.
+            include '*.proto'
+        }
+    }
+
+    integration {
+        java.srcDir "$projectDir/src/test.integration/java"
+        resources.srcDir "$projectDir/src/test/resources"
+        compileClasspath += main.output + test.output
+        runtimeClasspath += main.output + test.output
+    }
+}
+
+
+
 // Unit tests
 test {
     useJUnit()
 
     // Do format linting before tests
     dependsOn spotlessCheck
+}
+
+// Longer integration tests
+tasks.register('integrationTest', Test) {
+    description = "Runs integration tests."
+    group = 'verification'
+
+    testClassesDirs = sourceSets.integration.output.classesDirs
+    classpath = sourceSets.integration.runtimeClasspath
+
+    // Required due to global state that gets messed up if we don't use a new
+    // JVM for each test...
+    forkEvery 1
+
+    shouldRunAfter test
+}
+
+configurations {
+    integrationCompileOnly.extendsFrom testCompileOnly
+    integrationImplementation.extendsFrom testImplementation
+    integrationRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+tasks.withType(Test).configureEach {
+    // set JVM arguments for the test JVM(s)
+    // Copied from some of Ghidra's properties in
+    // 'gradle/javaTestProject.gradle' and
+    // 'Ghidra/Test/IntegrationTest/build.gradle'
+    jvmArgs '--add-exports=java.desktop/sun.awt=ALL-UNNAMED' // Required for Java 17 compatibility
+
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }
 
 // The following installation helpers were copied from
@@ -147,19 +213,6 @@ protobuf {
     generateProtoTasks {
         all().each { task -> task.dependsOn copyDependencies }
     }
-}
-sourceSets {
-  main {
-    proto {
-      // In addition to the default 'src/main/proto'
-      srcDir '../binary_type_inference/data_formats'
-      // In addition to the default '**/*.proto' (use with caution).
-      // Using an extension other than 'proto' is NOT recommended,
-      // because when proto files are published along with class files, we can
-      // only tell the type of a file from its extension.
-      include '*.proto'
-    }
-  }
 }
 
 // Code style formatting
