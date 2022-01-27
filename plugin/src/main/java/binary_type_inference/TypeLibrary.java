@@ -89,8 +89,10 @@ public class TypeLibrary {
     FunctionDefinitionDataType res_type =
         new FunctionDefinitionDataType("func_type_for_" + Integer.toString(node_index));
 
-    var ret_ty = this.rec_build_node_type(func.getReturnType(), node_index, res_type);
-    res_type.setReturnType(ret_ty);
+    if (func.getHasReturn()) {
+      var ret_ty = this.rec_build_node_type(func.getReturnType(), node_index, res_type);
+      res_type.setReturnType(ret_ty);
+    }
 
     var max_ind =
         func.getParametersList().stream()
@@ -243,16 +245,24 @@ public class TypeLibrary {
     return res;
   }
 
+  private Optional<Pair<Tid, DataType>> get_type_of_tid(TidToNodeIndex type_var) {
+    if (this.mapping.containsNodeTypes(type_var.getNodeIndex())) {
+      return Optional.of(
+          new Pair<Tid, DataType>(
+              type_var.getTid(), this.build_node_type(type_var.getNodeIndex())));
+    } else {
+      return Optional.empty();
+    }
+  }
+
   public Types buildMapping() {
     // memoization map
 
-    var tid_mapping_memo =
+    Map<Tid, DataType> tid_mapping_memo =
         this.mapping.getTypeVariableReprNodesList().stream()
-            .map(
-                (TidToNodeIndex type_var) -> {
-                  return new Pair<>(
-                      type_var.getTid(), this.build_node_type(type_var.getNodeIndex()));
-                })
+            .map((TidToNodeIndex type_var) -> this.get_type_of_tid(type_var))
+            .filter((Optional<Pair<Tid, DataType>> pr) -> pr.isPresent())
+            .map(Optional::get)
             .collect(Collectors.toMap((var pr) -> pr.first, (var pr) -> pr.second));
 
     return new Types(tid_mapping_memo);

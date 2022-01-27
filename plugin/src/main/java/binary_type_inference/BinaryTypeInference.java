@@ -107,7 +107,6 @@ public class BinaryTypeInference {
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
-
       // throw exception
       throw new RuntimeException(
           "Running type inference failed " + new String(ty_result.getStderr().readAllBytes()));

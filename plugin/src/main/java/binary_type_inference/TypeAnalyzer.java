@@ -164,17 +164,15 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     // the
     // analysis succeeded.
 
-    if (this.opts.preserved_functions_file.isEmpty()) {
-      log.appendException(new RuntimeException("Didnt get preserved functions file"));
-      return false;
+    Optional<PreservedFunctionList> maybe_preserved = Optional.empty();
+    if (!this.opts.preserved_functions_file.isEmpty()) {
+      maybe_preserved =
+          PreservedFunctionList.parseTargetFunctionListFile(
+              program, this.opts.preserved_functions_file.get());
     }
 
-    var maybe_preserved =
-        PreservedFunctionList.parseTargetFunctionListFile(
-            program, this.opts.preserved_functions_file.get());
-
     if (maybe_preserved.isEmpty()) {
-      return false;
+      maybe_preserved = Optional.of(PreservedFunctionList.createFromExternSection(program));
     }
 
     var preserved = maybe_preserved.get();
