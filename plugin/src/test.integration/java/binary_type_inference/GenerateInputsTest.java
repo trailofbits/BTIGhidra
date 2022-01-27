@@ -40,6 +40,55 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     env.dispose();
   }
 
+  /*
+   *
+   * // Analyze applying types to mooosl and check that the type of the struct is
+   * // correct at the critical point.
+   *
+   * @Test
+   * public void testMoooslLinkedList() throws Exception {
+   * // For future reference, to get processor:
+   * // Processor.findOrPossiblyCreateProcessor("x86")
+   * LanguageCompilerSpecPair specPair = new
+   * LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
+   * program = env.getGhidraProject()
+   * .importProgram(
+   * new File(
+   * Objects.requireNonNull(
+   * GenerateInputsTest.class
+   * .getClassLoader()
+   * .getResource("binaries/mooosl"))
+   * .getFile()),
+   * specPair.getLanguage(),
+   * specPair.getCompilerSpec());
+   * env.getGhidraProject().analyze(program, false);
+   *
+   * PreservedFunctionList pl =
+   * PreservedFunctionList.createFromExternSection(program);
+   *
+   * var inf = new BinaryTypeInference(
+   * program,
+   * pl,
+   * Arrays.asList(
+   * "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"
+   * ));
+   * var const_types = inf.produceArtifacts();
+   *
+   * assertTrue("lattice file exists",
+   * inf.getLatticeJsonPath().toFile().exists());
+   * assertTrue(
+   * "additional constraints file exisits",
+   * inf.getAdditionalConstraintsPath().toFile().exists());
+   *
+   * inf.getCtypes();
+   *
+   * assertTrue("Ctypes dont exist", inf.getCtypesOutPath().toFile().exists());
+   *
+   * inf.applyCtype(const_types);
+   *
+   * }
+   */
+
   @Test
   public void generateListInputs() throws Exception {
     // For future reference, to get processor:

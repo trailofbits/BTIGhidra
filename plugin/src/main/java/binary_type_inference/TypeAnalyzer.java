@@ -11,6 +11,7 @@ import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
+import ghidra.program.model.symbol.SourceType;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import java.io.BufferedReader;
@@ -18,6 +19,7 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -38,6 +40,18 @@ class TypeAnalyzerOptions {
 class PreservedFunctionList {
 
   private final Set<Function> preservedFunctions;
+
+  public static PreservedFunctionList createFromExternSection(Program prog) {
+    var pres = new HashSet<Function>();
+
+    for (var func : prog.getFunctionManager().getExternalFunctions()) {
+      if (func.getSignatureSource() == SourceType.IMPORTED) {
+        pres.add(func);
+      }
+    }
+
+    return new PreservedFunctionList(pres);
+  }
 
   PreservedFunctionList(Set<Function> preservedFunctions) {
     this.preservedFunctions = preservedFunctions;

@@ -9,6 +9,7 @@ import generic.stl.Pair;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
+import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.listing.FunctionSignature;
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -67,19 +68,30 @@ class Retval {
 // Signatures are collected into constraints. When we no longer can emit a
 // constraint, we get a type constant for that data type.
 public class TypeLattice {
+  private final boolean shouldIgnoreVoidPointers;
+
   private final Map<Tid, FunctionSignature> fixed_signatures;
 
   private final List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy;
 
   public TypeLattice(
       Map<Tid, FunctionSignature> fixed_signatures,
-      List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy) {
+      List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy,
+      boolean shouldIgnoreVoidPointers) {
     this.fixed_signatures = fixed_signatures;
     this.less_than_relation_strategy = less_than_relation_strategy;
+    this.shouldIgnoreVoidPointers = shouldIgnoreVoidPointers;
   }
 
-  private static Retval constraintsForReturn(Tid tid, DataType ty) {
+  private Optional<Retval> constraintsForReturn(Tid tid, DataType ty) {
+    System.out.println(ty);
+    System.out.println(TypeLattice.isVoidPointer(ty));
+    if (this.shouldIgnoreVoidPointers && TypeLattice.isVoidPointer(ty)) {
+      return Optional.empty();
+    }
+
     var func_tvar = TypeLattice.tid_to_tvar(tid);
+
     var dtv =
         DerivedTypeVariable.newBuilder()
             .setBaseVar(func_tvar)
@@ -91,10 +103,20 @@ public class TypeLattice {
     repr_for_ty.second.addSubtyCons(
         SubtypingConstraint.newBuilder().setLhs(dtv).setRhs(repr_for_ty.first).build());
 
-    return repr_for_ty.second;
+    return Optional.of(repr_for_ty.second);
   }
 
-  private static Retval constraintsForParam(int idx, Tid tid, DataType ty) {
+  private static boolean isVoidPointer(DataType ty) {
+    return (ty instanceof Pointer) && (((Pointer) ty).getDataType() instanceof VoidDataType);
+  }
+
+  private Optional<Retval> constraintsForParam(int idx, Tid tid, DataType ty) {
+    System.out.println(ty);
+    System.out.println(TypeLattice.isVoidPointer(ty));
+    if (this.shouldIgnoreVoidPointers && TypeLattice.isVoidPointer(ty)) {
+      return Optional.empty();
+    }
+
     var repr = representation_for_datatype(ty);
 
     var new_cons =
@@ -104,7 +126,8 @@ public class TypeLattice {
             .build();
 
     repr.second.addSubtyCons(new_cons);
-    return repr.second;
+
+    return Optional.of(repr.second);
   }
 
   private static String tid_to_tvar(Tid tid) {
@@ -224,20 +247,29 @@ public class TypeLattice {
     }
   }
 
-  private static Retval constraintsForSignature(Tid tid, FunctionSignature sig) {
+  private Retval constraintsForSignature(Tid tid, FunctionSignature sig) {
     Retval total = new Retval();
     int idx = 0;
     for (var arg : sig.getArguments()) {
-      total = total.merge(TypeLattice.constraintsForParam(idx, tid, arg.getDataType()));
+      var maybe_val = this.constraintsForParam(idx, tid, arg.getDataType());
+      if (maybe_val.isPresent()) {
+        total = total.merge(maybe_val.get());
+      }
+
       idx++;
     }
 
-    return total.merge(TypeLattice.constraintsForReturn(tid, sig.getReturnType()));
+    var maybe_ret_cons = this.constraintsForReturn(tid, sig.getReturnType());
+    if (maybe_ret_cons.isPresent()) {
+      total = total.merge(maybe_ret_cons.get());
+    }
+
+    return total;
   }
 
   private Retval collectSignatureConstraints() {
     return this.fixed_signatures.entrySet().stream()
-        .map((var sig) -> TypeLattice.constraintsForSignature(sig.getKey(), sig.getValue()))
+        .map((var sig) -> this.constraintsForSignature(sig.getKey(), sig.getValue()))
         .reduce(new Retval(), (Retval x, Retval y) -> x.merge(y));
   }
 

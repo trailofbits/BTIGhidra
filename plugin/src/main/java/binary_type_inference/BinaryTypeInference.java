@@ -76,7 +76,8 @@ public class BinaryTypeInference {
     GetBinaryJson ir_generator =
         new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
-    var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>());
+    // True so that we dont generate type constants for void types.
+    var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>(), true);
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
     output_builder.addInterestingTids(
