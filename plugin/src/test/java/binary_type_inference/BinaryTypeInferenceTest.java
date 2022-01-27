@@ -40,8 +40,8 @@ public class BinaryTypeInferenceTest {
             testDataDir.resolve("list_test.o"),
             testDataDir.resolve("list_test.json"),
             testDataDir.resolve("list_lattice.json"),
-            testDataDir.resolve("list_additional_constraints"),
-            testDataDir.resolve("list_test_interesting_variables.json"),
+            testDataDir.resolve("list_additional_constraints.pb"),
+            testDataDir.resolve("list_interesting_tids.pb"),
             pb_pth);
     var result = demo.inferTypes();
 
