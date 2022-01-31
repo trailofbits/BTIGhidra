@@ -36,3 +36,6 @@ reinstall:
 
 uninstall-bti:
   ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE uninstallPreviousBTI
+
+test-native:
+  cd ./binary_type_inference && souffle -o ./target/debug/deps/lowertypes ./lowering/type_inference.dl && cargo test
