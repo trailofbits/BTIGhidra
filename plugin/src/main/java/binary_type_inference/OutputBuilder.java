@@ -29,6 +29,9 @@ public class OutputBuilder {
 
   public static final String BOTTOM_STRING = "bottom";
   public static final String TOP_STRING = "T";
+  // A weak integer is the weakest possible integral type and will construct an
+  // integer length depending on the associated size
+  public static final String SPECIAL_WEAK_INTEGER = "weak_integer";
 
   /*
    * {
@@ -119,6 +122,8 @@ public class OutputBuilder {
     }
 
     jobj.add("less_than_relations_between_handles", arr);
+
+    jobj.add("weakest_integral_type", new JsonPrimitive(OutputBuilder.SPECIAL_WEAK_INTEGER));
 
     Gson gs = new Gson();
     System.out.println(jobj.toString());

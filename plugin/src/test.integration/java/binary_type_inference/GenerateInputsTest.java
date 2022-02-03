@@ -42,7 +42,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
   // Analyze applying types to mooosl and check that the type of the struct is
   // correct at the critical point.
-  /*
+
   @Test
   public void testMoooslLinkedList() throws Exception {
     // For future reference, to get processor:
@@ -81,7 +81,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     assertTrue("Ctypes dont exist", inf.getCtypesOutPath().toFile().exists());
 
     inf.applyCtype(const_types);
-  }*/
+  }
 
   @Test
   public void generateListInputs() throws Exception {

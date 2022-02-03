@@ -14,6 +14,7 @@ import generic.stl.Pair;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataTypeManager;
 import ghidra.program.model.data.FunctionDefinitionDataType;
+import ghidra.program.model.data.IntegerDataType;
 import ghidra.program.model.data.ParameterDefinition;
 import ghidra.program.model.data.ParameterDefinitionImpl;
 import ghidra.program.model.data.PointerDataType;
@@ -127,6 +128,11 @@ public class TypeLibrary {
   }
 
   private DataType build_primitive(Primitive prim) {
+    // TODO(ian): figure out size based on use
+    if (prim.getTypeConstant().equals(OutputBuilder.SPECIAL_WEAK_INTEGER)) {
+      return IntegerDataType.dataType;
+    }
+
     return this.type_constants.getOrDefault(prim.getTypeConstant(), this.unknownType);
   }
 
