@@ -1,6 +1,7 @@
 package binary_type_inference;
 
 import ctypes.Ctypes.CTypeMapping;
+import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
@@ -66,18 +67,25 @@ public class BinaryTypeInferenceRunner {
    */
   public TypeInferenceResult inferTypes() throws IOException {
     // Call binary type inference tool with arguments
+    // Fixes buffering by redirecting output to null
     ProcessBuilder bldr =
         new ProcessBuilder(
-            typeInferenceTool.toAbsolutePath().toString(),
-            programLocation.toAbsolutePath().toString(),
-            irLocation.toAbsolutePath().toString(),
-            typeLatticeLocation.toAbsolutePath().toString(),
-            additionalConstraintsLocation.toAbsolutePath().toString(),
-            this.interesting_vars_file.toString(),
-            "--out",
-            this.out_protobuf.toString());
+                typeInferenceTool.toAbsolutePath().toString(),
+                programLocation.toAbsolutePath().toString(),
+                irLocation.toAbsolutePath().toString(),
+                typeLatticeLocation.toAbsolutePath().toString(),
+                additionalConstraintsLocation.toAbsolutePath().toString(),
+                this.interesting_vars_file.toString(),
+                "--out",
+                this.out_protobuf.toString())
+            .redirectOutput(new File("/dev/null"))
+            .redirectError(new File("/dev/null"));
 
-    System.out.println(bldr.command());
+    for (var arg : bldr.command()) {
+      System.out.print(arg);
+      System.out.print(" ");
+    }
+    System.out.println("");
 
     var bti = bldr.start();
 

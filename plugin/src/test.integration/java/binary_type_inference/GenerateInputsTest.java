@@ -55,7 +55,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
                     Objects.requireNonNull(
                             GenerateInputsTest.class
                                 .getClassLoader()
-                                .getResource("binaries/mooosl"))
+                                .getResource("binaries/new_moosl_bin"))
                         .getFile()),
                 specPair.getLanguage(),
                 specPair.getCompilerSpec());
@@ -81,6 +81,14 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     assertTrue("Ctypes dont exist", inf.getCtypesOutPath().toFile().exists());
 
     inf.applyCtype(const_types);
+
+    var hopefully_fixed =
+        program
+            .getFunctionManager()
+            .getFunctionAt(program.getAddressFactory().getAddress("0x001014fb"));
+    var target_sig = hopefully_fixed.getSignature();
+
+    System.out.println(target_sig);
   }
 
   @Test
@@ -135,6 +143,8 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             .getFunctionManager()
             .getFunctionAt(program.getAddressFactory().getAddress("0x0000"));
     var target_sig = hopefully_fixed.getSignature();
+
+    System.out.println("zero addr sig: " + target_sig.toString());
 
     var ptr = target_sig.getArguments()[0];
 

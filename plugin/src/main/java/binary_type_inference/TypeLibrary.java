@@ -63,6 +63,7 @@ public class TypeLibrary {
 
   // TODO(ian): this assumes we never get an alias to ourselves
   private DataType build_alias(Alias to) {
+    System.out.println("Building alias:" + to.toString());
     return this.build_node_type(to.getToType());
   }
 
@@ -242,6 +243,7 @@ public class TypeLibrary {
   }
 
   private DataType build_node_type(int node_index) {
+    System.out.println("Building node:" + node_index);
     if (this.node_index_to_type_memoization.containsKey(node_index)) {
       return this.node_index_to_type_memoization.get(node_index);
     }
