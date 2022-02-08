@@ -22,6 +22,8 @@ public class TypeInferenceResult {
 
   public boolean success() {
     try {
+      // wait for has a buffer of 32kb which we are blowing away causing permanent
+      // hang, do not let block.
       return typeInference.waitFor() == 0;
     } catch (InterruptedException e) {
       return false;

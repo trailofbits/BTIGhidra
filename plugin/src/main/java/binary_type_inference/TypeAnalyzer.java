@@ -7,6 +7,7 @@ import ghidra.app.services.AnalyzerType;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.framework.options.OptionType;
 import ghidra.framework.options.Options;
+import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.FunctionSignature;
@@ -19,8 +20,10 @@ import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -45,7 +48,11 @@ class PreservedFunctionList {
     var pres = new HashSet<Function>();
 
     for (var func : prog.getFunctionManager().getExternalFunctions()) {
-      if (func.getSignatureSource() == SourceType.IMPORTED) {
+      if (func.getSignatureSource() != SourceType.USER_DEFINED) {
+        Arrays.stream(func.getFunctionThunkAddresses())
+            .map((Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
+            .filter(Objects::nonNull)
+            .forEach((Function thunk) -> pres.add(thunk));
         pres.add(func);
       }
     }
