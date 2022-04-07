@@ -9,15 +9,9 @@ platform := replace(os(),"macos","mac") + "_" + replace(arch(), "aarch64","arm_6
 build-native-binary: 
   cd ./binary_type_inference && cargo build --release
 
-build-native-datalog: build-native-binary
-  cd ./binary_type_inference && souffle -o ./target/release/lowertypes ./lowering/type_inference.dl
-
-
-install-native: build-native-datalog build-native-binary
+install-native: build-native-binary
   rm -f ./plugin/os/{{platform}}/json_to_constraints
-  rm -f ./plugin/os/{{platform}}/lowertypes
   cp ./binary_type_inference/target/release/json_to_constraints ./plugin/os/{{platform}}/
-  cp ./binary_type_inference/target/release/lowertypes ./plugin/os/{{platform}}/
 
 format:
   ./plugin/gradlew --project-dir ./plugin spotlessApply
@@ -38,4 +32,4 @@ uninstall-bti:
   ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE uninstallPreviousBTI
 
 test-native:
-  cd ./binary_type_inference && souffle -o ./target/debug/deps/lowertypes ./lowering/type_inference.dl && cargo test
+  cd ./binary_type_inference && cargo test
