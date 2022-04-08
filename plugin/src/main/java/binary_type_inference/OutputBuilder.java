@@ -5,7 +5,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonPrimitive;
 import com.google.protobuf.MessageLite;
-import constraints.Constraints.SubtypingConstraint;
+import constraints.Constraints.AdditionalConstraint;
 import ctypes.Ctypes.Tid;
 import generic.stl.Pair;
 import ghidra.program.model.data.DataType;
@@ -23,7 +23,7 @@ import java.util.stream.Collectors;
 
 public class OutputBuilder {
   private final List<Pair<String, String>> lattice;
-  private final List<SubtypingConstraint> additional_constraints;
+  private final List<AdditionalConstraint> additional_constraints;
   private final List<Tid> interesting_tids;
   private final Map<String, DataType> type_constant_variable_to_datatype;
 
@@ -57,7 +57,7 @@ public class OutputBuilder {
 
   public OutputBuilder(
       List<Pair<String, String>> lattice,
-      List<SubtypingConstraint> additional_constraints,
+      List<AdditionalConstraint> additional_constraints,
       List<Tid> interesting_tids,
       Map<String, DataType> type_constant_variable_to_datatype) {
     this.lattice = lattice;
