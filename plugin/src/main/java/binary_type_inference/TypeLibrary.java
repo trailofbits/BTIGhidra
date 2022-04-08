@@ -250,6 +250,7 @@ public class TypeLibrary {
     }
 
     private DataType build_primitive(Primitive prim) {
+      System.out.println("Prim: "+prim.getTypeConstant());
       // TODO(ian): figure out size based on use
       if (prim.getTypeConstant().equals(OutputBuilder.SPECIAL_WEAK_INTEGER)) {
         return IntegerDataType.dataType;
