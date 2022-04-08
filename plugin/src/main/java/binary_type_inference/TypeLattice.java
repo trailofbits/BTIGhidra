@@ -1,5 +1,6 @@
 package binary_type_inference;
 
+import constraints.Constraints.AdditionalConstraint;
 import constraints.Constraints.DerivedTypeVariable;
 import constraints.Constraints.Field;
 import constraints.Constraints.FieldLabel;
@@ -23,13 +24,13 @@ import java.util.stream.Stream;
 
 class Retval {
   private final Set<DataType> type_constants;
-  private final List<SubtypingConstraint> constraints;
+  private final List<AdditionalConstraint> constraints;
 
   public Set<DataType> getType_constants() {
     return type_constants;
   }
 
-  public List<SubtypingConstraint> getConstraints() {
+  public List<AdditionalConstraint> getConstraints() {
     return constraints;
   }
 
@@ -50,7 +51,7 @@ class Retval {
     return newVal;
   }
 
-  public void addSubtyCons(SubtypingConstraint sty) {
+  public void addSubtyCons(AdditionalConstraint sty) {
     this.constraints.add(sty);
   }
 
@@ -98,10 +99,12 @@ public class TypeLattice {
             .addFieldLabels(FieldLabel.newBuilder().setOutParam(0))
             .build();
 
-    var repr_for_ty = TypeLattice.representation_for_datatype(ty);
+    var repr_for_ty = TypeLattice.representation_for_datatype(ty, tid);
 
-    repr_for_ty.second.addSubtyCons(
-        SubtypingConstraint.newBuilder().setLhs(dtv).setRhs(repr_for_ty.first).build());
+    var subty = SubtypingConstraint.newBuilder().setLhs(dtv).setRhs(repr_for_ty.first).build();
+    var add_cons = AdditionalConstraint.newBuilder().setSubTy(subty).setTargetVariable(tid);
+
+    repr_for_ty.second.addSubtyCons(add_cons.build());
 
     return Optional.of(repr_for_ty.second);
   }
@@ -117,7 +120,7 @@ public class TypeLattice {
       return Optional.empty();
     }
 
-    var repr = representation_for_datatype(ty);
+    var repr = representation_for_datatype(ty, tid);
 
     var new_cons =
         SubtypingConstraint.newBuilder()
@@ -125,7 +128,9 @@ public class TypeLattice {
             .setRhs(dtv_for_param_of_tid(idx, tid))
             .build();
 
-    repr.second.addSubtyCons(new_cons);
+    var add_cons = AdditionalConstraint.newBuilder().setSubTy(new_cons).setTargetVariable(tid);
+
+    repr.second.addSubtyCons(add_cons.build());
 
     return Optional.of(repr.second);
   }
@@ -179,14 +184,15 @@ public class TypeLattice {
     return repr;
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_pointer(Pointer ptr) {
+  private static Pair<DerivedTypeVariable, Retval> representation_for_pointer(
+      Pointer ptr, Tid affecting_tid) {
     var load_repr =
         TypeLattice.get_ptr_dtv_for_type(
             ptr, constraints.Constraints.Pointer.POINTER_LOAD_UNSPECIFIED);
     var store_repr =
         TypeLattice.get_ptr_dtv_for_type(ptr, constraints.Constraints.Pointer.POINTER_STORE);
 
-    var pointedToRes = TypeLattice.representation_for_datatype(ptr.getDataType());
+    var pointedToRes = TypeLattice.representation_for_datatype(ptr.getDataType(), affecting_tid);
 
     var load_cons =
         SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(load_repr).build();
@@ -194,18 +200,31 @@ public class TypeLattice {
         SubtypingConstraint.newBuilder().setLhs(store_repr).setRhs(pointedToRes.first).build();
 
     var retval = pointedToRes.second;
-    retval.addSubtyCons(load_cons);
-    retval.addSubtyCons(store_cons);
+
+    var add_cons_load =
+        AdditionalConstraint.newBuilder()
+            .setSubTy(load_cons)
+            .setTargetVariable(affecting_tid)
+            .build();
+    var add_store_cons =
+        AdditionalConstraint.newBuilder()
+            .setSubTy(store_cons)
+            .setTargetVariable(affecting_tid)
+            .build();
+
+    retval.addSubtyCons(add_cons_load);
+    retval.addSubtyCons(add_store_cons);
 
     return new Pair<DerivedTypeVariable, Retval>(
         data_type_to_derived_variable(ptr).build(), retval);
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_structure(Structure struct) {
+  private static Pair<DerivedTypeVariable, Retval> representation_for_structure(
+      Structure struct, Tid affecting_tid) {
     var tot = new Retval();
 
     for (var comp : struct.getComponents()) {
-      var repr_of_field = representation_for_datatype(comp.getDataType());
+      var repr_of_field = representation_for_datatype(comp.getDataType(), affecting_tid);
 
       tot.merge(repr_of_field.second);
       var struct_var = TypeLattice.data_type_to_derived_variable(struct);
@@ -219,23 +238,29 @@ public class TypeLattice {
                               .setByteOffset(comp.getOffset())))
               .build();
 
-      tot.addSubtyCons(
-          SubtypingConstraint.newBuilder()
-              .setLhs(repr_of_field.first)
-              .setRhs(field_access)
-              .build());
+      var field_access_cons =
+          AdditionalConstraint.newBuilder()
+              .setSubTy(
+                  SubtypingConstraint.newBuilder()
+                      .setLhs(repr_of_field.first)
+                      .setRhs(field_access)
+                      .build())
+              .setTargetVariable(affecting_tid)
+              .build();
+      tot.addSubtyCons(field_access_cons);
     }
 
     return new Pair<DerivedTypeVariable, Retval>(
         TypeLattice.data_type_to_derived_variable(struct).build(), tot);
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_datatype(DataType dt) {
+  private static Pair<DerivedTypeVariable, Retval> representation_for_datatype(
+      DataType dt, Tid affecting_tid) {
     if (dt instanceof Pointer) {
-      return representation_for_pointer((Pointer) dt);
+      return representation_for_pointer((Pointer) dt, affecting_tid);
       // TODO(ian): maybe expand to unions.
     } else if (dt instanceof Structure) {
-      return representation_for_structure((Structure) dt);
+      return representation_for_structure((Structure) dt, affecting_tid);
     } else {
       // generate fall through constant
       var type_const = TypeLattice.data_type_to_derived_variable(dt).build();
