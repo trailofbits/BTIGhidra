@@ -19,9 +19,6 @@ jobs:
           curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
           # Check markdown links
           sudo npm install -g markdown-link-check
-          curl -s https://packagecloud.io/install/repositories/souffle-lang/souffle/script.deb.sh | sudo bash
-          sudo apt-get update
-          sudo apt-get install -y souffle
 
       - name: Install stable rust
         uses: actions-rs/toolchain@v1.0.6
