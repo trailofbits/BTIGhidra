@@ -168,7 +168,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     assertTrue("First field is not pointer", should_be_self_pointer instanceof Pointer);
 
     var self_pointer = (Pointer) should_be_self_pointer;
-
+    System.out.println("Later id: " + System.identityHashCode(self_pointer));
     assertEquals(struct, self_pointer.getDataType());
 
     assertTrue(

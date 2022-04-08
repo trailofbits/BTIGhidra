@@ -5,6 +5,7 @@ import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DefaultDataType;
+import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
@@ -119,7 +120,20 @@ public class BinaryTypeInference {
         TypeLibrary.parseFromInputStream(
             new FileInputStream(this.getCtypesOutPath().toFile()),
             constants,
-            DefaultDataType.dataType,
+            new IUnknownTypeBuilder() {
+
+              @Override
+              public DataType getDefaultUnkownType() {
+                // TODO Auto-generated method stub
+                return DefaultDataType.dataType;
+              }
+
+              @Override
+              public DataType getUnknownDataTypeWithSize(int new_size) {
+                // TODO Auto-generated method stub
+                return Undefined.getUndefinedDataType(new_size);
+              }
+            },
             this.prog.getDataTypeManager());
 
     var mapping = ty_lib.buildMapping();
@@ -131,6 +145,7 @@ public class BinaryTypeInference {
       var new_ty = mapping.getDataTypeForTid(tid);
       if (!this.preserved.shouldPreserve(func) && new_ty.isPresent()) {
         var unwrapped_ty = new_ty.get();
+        System.out.println(unwrapped_ty.toString());
         assert (unwrapped_ty instanceof FunctionSignature);
         var sig = (FunctionSignature) unwrapped_ty;
         var args = sig.getArguments();
