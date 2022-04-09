@@ -1,5 +1,6 @@
 package binary_type_inference;
 
+import ctypes.Ctypes;
 import ctypes.Ctypes.Alias;
 import ctypes.Ctypes.CType;
 import ctypes.Ctypes.CTypeMapping;
@@ -21,6 +22,8 @@ import ghidra.program.model.data.ParameterDefinition;
 import ghidra.program.model.data.ParameterDefinitionImpl;
 import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.StructureDataType;
+import ghidra.program.model.data.UnionDataType;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -150,6 +153,8 @@ public class TypeLibrary {
           return this.buildAlias(target.getAlias());
         case STRUCTURE:
           return this.buildStructure(target.getStructure(), isRoot);
+        case UNION:
+          return this.buildUnion(target.getUnion(), isRoot);
         case POINTER:
           return this.buildPointer(target.getPointer());
         case PRIMITIVE:
@@ -158,7 +163,7 @@ public class TypeLibrary {
           return this.buildFunction(target.getFunction());
         case INNERTYPE_NOT_SET:
         default:
-          throw new NotImplementedException();
+          throw new NotImplementedException("Type case of: " + type_case.toString());
       }
     }
 
@@ -188,6 +193,28 @@ public class TypeLibrary {
       public int get_byte_past_end() {
         return this.byte_offset + (this.bit_size / 8);
       }
+    }
+
+    private DataType buildUnion(Ctypes.Union union, boolean isRoot) {
+
+      var st =
+          new UnionDataType(
+              "union_for_node_"
+                  + Integer.toString(this.freshID())
+                  + "_"
+                  + Integer.toString(this.targetIndex));
+      if (isRoot) {
+        this.root_stub = Optional.of(st);
+      }
+
+      var unsorted_flds = union.getTargetTypesList();
+
+      for (var fld: unsorted_flds) {
+        var child_ty = this.buildCtype(fld, false);
+        st.add(child_ty);
+      }
+
+      return st;
     }
 
     private DataType buildStructure(Structure struct, boolean isRoot) {
