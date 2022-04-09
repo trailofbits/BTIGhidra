@@ -23,7 +23,6 @@ import ghidra.program.model.data.ParameterDefinitionImpl;
 import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.StructureDataType;
 import ghidra.program.model.data.UnionDataType;
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
@@ -209,7 +208,7 @@ public class TypeLibrary {
 
       var unsorted_flds = union.getTargetTypesList();
 
-      for (var fld: unsorted_flds) {
+      for (var fld : unsorted_flds) {
         var child_ty = this.buildCtype(fld, false);
         st.add(child_ty);
       }
@@ -277,7 +276,7 @@ public class TypeLibrary {
     }
 
     private DataType build_primitive(Primitive prim) {
-      System.out.println("Prim: "+prim.getTypeConstant());
+      System.out.println("Prim: " + prim.getTypeConstant());
       // TODO(ian): figure out size based on use
       if (prim.getTypeConstant().equals(OutputBuilder.SPECIAL_WEAK_INTEGER)) {
         return IntegerDataType.dataType;
