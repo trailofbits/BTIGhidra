@@ -41,7 +41,7 @@ public class BinaryTypeInference {
     this.prog = prog;
     this.preserved = preserved;
     this.workingDir = Files.createTempDir().toPath();
-    //this.workingDir = Paths.get("/tmp");
+    // this.workingDir = Paths.get("/tmp");
     this.extra_script_dirs = extra_script_dirs;
   }
 
