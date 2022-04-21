@@ -20,6 +20,7 @@ public class BinaryTypeInferenceRunner {
   private final Path additionalConstraintsLocation;
   private final Path interesting_vars_file;
   private final Path out_protobuf;
+  private final Path working_dir;
   private CTypeMapping ct;
 
   private Optional<TypeInferenceResult> lastResult = Optional.empty();
@@ -41,7 +42,7 @@ public class BinaryTypeInferenceRunner {
       Path typeLatticeLocation,
       Path additionalConstraintsLocation,
       Path interesting_vars_file,
-      Path out_protobuf) {
+      Path out_protobuf, Path working_dir) {
     // this.program = program;
     this.typeInferenceTool = typeInferenceToolLocation;
     this.programLocation = programLocation;
@@ -50,6 +51,7 @@ public class BinaryTypeInferenceRunner {
     this.additionalConstraintsLocation = additionalConstraintsLocation;
     this.interesting_vars_file = interesting_vars_file;
     this.out_protobuf = out_protobuf;
+    this.working_dir = working_dir;
   }
 
   public Optional<TypeInferenceResult> getLastResult() {
@@ -75,9 +77,10 @@ public class BinaryTypeInferenceRunner {
                 irLocation.toAbsolutePath().toString(),
                 typeLatticeLocation.toAbsolutePath().toString(),
                 additionalConstraintsLocation.toAbsolutePath().toString(),
-                this.interesting_vars_file.toString(),
+                this.interesting_vars_file.toAbsolutePath().toString(),
                 "--out",
-                this.out_protobuf.toString())
+                this.out_protobuf.toString(),
+                "--debug_out_dir", this.working_dir.toAbsolutePath().toString())
             .redirectOutput(new File("/dev/null"))
             .redirectError(new File("/dev/null"));
 

@@ -73,11 +73,11 @@ public class TypeLattice {
 
   private final Map<Tid, FunctionSignature> fixed_signatures;
 
-  private final List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy;
+  private final List<Function<DataType, Optional<List<String>>>> less_than_relation_strategy;
 
   public TypeLattice(
       Map<Tid, FunctionSignature> fixed_signatures,
-      List<Function<DataType, Optional<List<DataType>>>> less_than_relation_strategy,
+      List<Function<DataType, Optional<List<String>>>> less_than_relation_strategy,
       boolean shouldIgnoreVoidPointers) {
     this.fixed_signatures = fixed_signatures;
     this.less_than_relation_strategy = less_than_relation_strategy;
@@ -306,9 +306,9 @@ public class TypeLattice {
         var dts = maybe_res.get();
         return dts.stream()
             .map(
-                (DataType things_greater) ->
+                (String things_greater) ->
                     new Pair<String, String>(
-                        const_str, TypeLattice.data_type_to_type_variable(things_greater)));
+                        const_str, things_greater));
       }
     }
 
@@ -317,22 +317,22 @@ public class TypeLattice {
 
   private Stream<Pair<String, String>> constantsToLattice(Set<DataType> constants) {
     var bottom_cons =
-        constants.stream()
+        Stream.concat(constants.stream()
             .map(
                 (DataType target_constant) -> {
                   return new Pair<String, String>(
                       OutputBuilder.BOTTOM_STRING,
                       TypeLattice.data_type_to_type_variable(target_constant));
-                });
+                }),Stream.of(new Pair<String,String>(OutputBuilder.BOTTOM_STRING, OutputBuilder.SPECIAL_WEAK_INTEGER)));
 
     var top_cons =
-        constants.stream()
+        Stream.concat(constants.stream()
             .map(
                 (DataType target_constant) -> {
                   return new Pair<String, String>(
                       TypeLattice.data_type_to_type_variable(target_constant),
                       OutputBuilder.TOP_STRING);
-                });
+                }), Stream.of(new Pair<String,String>(OutputBuilder.SPECIAL_WEAK_INTEGER,OutputBuilder.TOP_STRING)));
 
     var generated_cons =
         constants.stream()
