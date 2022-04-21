@@ -1,8 +1,10 @@
 package binary_type_inference;
 
 import com.google.common.io.Files;
+
 import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
+import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DefaultDataType;
 import ghidra.program.model.data.Undefined;
@@ -19,6 +21,7 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 /*
@@ -40,8 +43,8 @@ public class BinaryTypeInference {
       Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
     this.prog = prog;
     this.preserved = preserved;
-    this.workingDir = Files.createTempDir().toPath();
-    // this.workingDir = Paths.get("/tmp");
+    //this.workingDir = Files.createTempDir().toPath();
+    this.workingDir = Paths.get("/tmp");
     this.extra_script_dirs = extra_script_dirs;
   }
 
@@ -78,8 +81,17 @@ public class BinaryTypeInference {
     GetBinaryJson ir_generator =
         new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
+
+    java.util.function.Function<DataType, Optional<List<String>>> strat =  (DataType inputtype) -> {
+      if (inputtype instanceof AbstractIntegerDataType) {
+        return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
+      } else {
+        return Optional.empty();
+      }
+    };
+
     // True so that we dont generate type constants for void types.
-    var lattice_gen = new TypeLattice(this.preserved.getTidMap(), new ArrayList<>(), true);
+    var lattice_gen = new TypeLattice(this.preserved.getTidMap(),List.of(strat), true);
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
     output_builder.addInterestingTids(
@@ -104,7 +116,7 @@ public class BinaryTypeInference {
             this.getLatticeJsonPath(),
             this.getAdditionalConstraintsPath(),
             this.getInterestingTidsPath(),
-            this.getCtypesOutPath());
+            this.getCtypesOutPath(), this.workingDir);
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
