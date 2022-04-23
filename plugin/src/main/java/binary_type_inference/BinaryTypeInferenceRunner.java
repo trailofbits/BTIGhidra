@@ -42,7 +42,8 @@ public class BinaryTypeInferenceRunner {
       Path typeLatticeLocation,
       Path additionalConstraintsLocation,
       Path interesting_vars_file,
-      Path out_protobuf, Path working_dir) {
+      Path out_protobuf,
+      Path working_dir) {
     // this.program = program;
     this.typeInferenceTool = typeInferenceToolLocation;
     this.programLocation = programLocation;
@@ -80,7 +81,8 @@ public class BinaryTypeInferenceRunner {
                 this.interesting_vars_file.toAbsolutePath().toString(),
                 "--out",
                 this.out_protobuf.toString(),
-                "--debug_out_dir", this.working_dir.toAbsolutePath().toString())
+                "--debug_out_dir",
+                this.working_dir.toAbsolutePath().toString())
             .redirectOutput(new File("/dev/null"))
             .redirectError(new File("/dev/null"));
 
