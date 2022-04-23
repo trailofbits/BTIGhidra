@@ -25,3 +25,7 @@ just install
 ```sh
 just test
 ```
+
+# Usage Notes:
+
+BTIGhidra currently relies on Ghidra's notions of parameters to bind physical locations to function parameters. If the decompiler has function signatures that are correct, you can run the Decompiler Parameter ID analysis to apply the decompile signatures to the ghidra database.
