@@ -1,5 +1,6 @@
 package binary_type_inference;
 
+import com.google.common.io.Files;
 import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
 import ghidra.program.model.data.AbstractIntegerDataType;
@@ -40,8 +41,8 @@ public class BinaryTypeInference {
       Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
     this.prog = prog;
     this.preserved = preserved;
-    // this.workingDir = Files.createTempDir().toPath();
-    this.workingDir = Paths.get("/tmp");
+    this.workingDir = Files.createTempDir().toPath();
+    // this.workingDir = Paths.get("/tmp");
     this.extra_script_dirs = extra_script_dirs;
   }
 

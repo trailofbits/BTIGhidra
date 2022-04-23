@@ -32,6 +32,14 @@ public class BinaryTypeInferenceTest {
     var result_protobuf = Files.createTempDir().toPath();
     var pb_pth = Path.of(result_protobuf.toString(), "ctypes.pb");
 
+    /*      Path typeInferenceToolLocation,
+    Path programLocation,
+    Path irLocation,
+    Path typeLatticeLocation,
+    Path additionalConstraintsLocation,
+    Path interesting_vars_file,
+    Path out_protobuf,
+    Path working_dir) */
     var demo =
         new BinaryTypeInferenceRunner(
             Path.of(
@@ -42,7 +50,8 @@ public class BinaryTypeInferenceTest {
             testDataDir.resolve("list_test_lattice.json"),
             testDataDir.resolve("list_additional_constraints.pb"),
             testDataDir.resolve("list_interesting_tids.pb"),
-            pb_pth);
+            pb_pth,
+            result_protobuf);
     var result = demo.inferTypes();
 
     assertThat(result.success())
