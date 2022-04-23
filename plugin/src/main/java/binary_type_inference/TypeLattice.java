@@ -305,10 +305,7 @@ public class TypeLattice {
       if (maybe_res.isPresent()) {
         var dts = maybe_res.get();
         return dts.stream()
-            .map(
-                (String things_greater) ->
-                    new Pair<String, String>(
-                        const_str, things_greater));
+            .map((String things_greater) -> new Pair<String, String>(const_str, things_greater));
       }
     }
 
@@ -317,22 +314,30 @@ public class TypeLattice {
 
   private Stream<Pair<String, String>> constantsToLattice(Set<DataType> constants) {
     var bottom_cons =
-        Stream.concat(constants.stream()
-            .map(
-                (DataType target_constant) -> {
-                  return new Pair<String, String>(
-                      OutputBuilder.BOTTOM_STRING,
-                      TypeLattice.data_type_to_type_variable(target_constant));
-                }),Stream.of(new Pair<String,String>(OutputBuilder.BOTTOM_STRING, OutputBuilder.SPECIAL_WEAK_INTEGER)));
+        Stream.concat(
+            constants.stream()
+                .map(
+                    (DataType target_constant) -> {
+                      return new Pair<String, String>(
+                          OutputBuilder.BOTTOM_STRING,
+                          TypeLattice.data_type_to_type_variable(target_constant));
+                    }),
+            Stream.of(
+                new Pair<String, String>(
+                    OutputBuilder.BOTTOM_STRING, OutputBuilder.SPECIAL_WEAK_INTEGER)));
 
     var top_cons =
-        Stream.concat(constants.stream()
-            .map(
-                (DataType target_constant) -> {
-                  return new Pair<String, String>(
-                      TypeLattice.data_type_to_type_variable(target_constant),
-                      OutputBuilder.TOP_STRING);
-                }), Stream.of(new Pair<String,String>(OutputBuilder.SPECIAL_WEAK_INTEGER,OutputBuilder.TOP_STRING)));
+        Stream.concat(
+            constants.stream()
+                .map(
+                    (DataType target_constant) -> {
+                      return new Pair<String, String>(
+                          TypeLattice.data_type_to_type_variable(target_constant),
+                          OutputBuilder.TOP_STRING);
+                    }),
+            Stream.of(
+                new Pair<String, String>(
+                    OutputBuilder.SPECIAL_WEAK_INTEGER, OutputBuilder.TOP_STRING)));
 
     var generated_cons =
         constants.stream()
