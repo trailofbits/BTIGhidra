@@ -1,6 +1,8 @@
 package binary_type_inference;
 
 import com.google.common.io.Files;
+
+import ghidra.app.util.importer.MessageLog;
 import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
 import ghidra.program.model.data.AbstractIntegerDataType;
@@ -36,13 +38,21 @@ public class BinaryTypeInference {
   private final PreservedFunctionList preserved;
   private final Path workingDir;
   private final List<String> extra_script_dirs;
+  private final MessageLog log;
 
   public BinaryTypeInference(
-      Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
+      Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs, MessageLog log, boolean should_save_output) {
+    this.log = log;
     this.prog = prog;
     this.preserved = preserved;
-    this.workingDir = Files.createTempDir().toPath();
-    // this.workingDir = Paths.get("/tmp");
+
+    if (should_save_output) {
+      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform but seems like ghidra sets this to a different tmp dir that is deleted.
+      this.workingDir = Paths.get("/tmp");
+    } else {
+      this.workingDir = Files.createTempDir().toPath();
+    }
+
     this.extra_script_dirs = extra_script_dirs;
   }
 

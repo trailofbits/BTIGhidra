@@ -30,6 +30,16 @@ import java.util.stream.Collectors;
 
 class TypeAnalyzerOptions {
   public Optional<File> preserved_functions_file;
+  public boolean should_save_output;
+
+  public TypeAnalyzerOptions() {
+    this.preserved_functions_file = Optional.empty();
+    this.should_save_output = false;
+  }
+  
+  void setShouldSaveOutput(boolean val) {
+    this.should_save_output = val;
+  }
 
   void setPreservedFunctionsFile(File pth) {
     this.preserved_functions_file = Optional.of(pth);
@@ -130,7 +140,6 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
   @Override
   public boolean getDefaultEnablement(Program program) {
-
     return false;
   }
 
@@ -142,7 +151,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
   @Override
   public void optionsChanged(Options options, Program program) {
     var file = options.getFile("Assume function list", null);
-
+    var new_bool = options.getBoolean("Save to debug directory", this.opts.should_save_output);
+    this.opts.setShouldSaveOutput(new_bool);
     if (file != null) {
       this.opts.setPreservedFunctionsFile(file);
     } else {
@@ -161,6 +171,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
         null,
         null,
         "the function signatures that are assumed correct");
+
+    options.registerOption("Save to debug directory", this.opts.should_save_output, null, "Saves intermediate artifacts instead of removing them after inference.");
   }
 
   @Override
@@ -184,7 +196,7 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
     var preserved = maybe_preserved.get();
 
-    var bti = new BinaryTypeInference(program, preserved, new ArrayList<>());
+    var bti = new BinaryTypeInference(program, preserved, new ArrayList<>(), log, this.opts.should_save_output);
 
     try {
       bti.run();
