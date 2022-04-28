@@ -36,7 +36,7 @@ class TypeAnalyzerOptions {
     this.preserved_functions_file = Optional.empty();
     this.should_save_output = false;
   }
-  
+
   void setShouldSaveOutput(boolean val) {
     this.should_save_output = val;
   }
@@ -172,7 +172,11 @@ public class TypeAnalyzer extends AbstractAnalyzer {
         null,
         "the function signatures that are assumed correct");
 
-    options.registerOption("Save to debug directory", this.opts.should_save_output, null, "Saves intermediate artifacts instead of removing them after inference.");
+    options.registerOption(
+        "Save to debug directory",
+        this.opts.should_save_output,
+        null,
+        "Saves intermediate artifacts instead of removing them after inference.");
   }
 
   @Override
@@ -196,7 +200,9 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
     var preserved = maybe_preserved.get();
 
-    var bti = new BinaryTypeInference(program, preserved, new ArrayList<>(), log, this.opts.should_save_output);
+    var bti =
+        new BinaryTypeInference(
+            program, preserved, new ArrayList<>(), log, this.opts.should_save_output);
 
     try {
       bti.run();

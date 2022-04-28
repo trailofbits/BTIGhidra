@@ -1,8 +1,7 @@
 package binary_type_inference;
 
-import com.google.common.io.Files;
-
 import binary_type_inference.TypeLibrary.Types;
+import com.google.common.io.Files;
 import ctypes.Ctypes.Tid;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.framework.Application;
@@ -31,7 +30,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 /*
 Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
@@ -50,13 +48,18 @@ public class BinaryTypeInference {
   private final MessageLog log;
 
   public BinaryTypeInference(
-      Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs, MessageLog log, boolean should_save_output) {
+      Program prog,
+      PreservedFunctionList preserved,
+      List<String> extra_script_dirs,
+      MessageLog log,
+      boolean should_save_output) {
     this.log = log;
     this.prog = prog;
     this.preserved = preserved;
 
     if (should_save_output) {
-      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform but seems like ghidra sets this to a different tmp dir that is deleted.
+      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform but seems like ghidra
+      // sets this to a different tmp dir that is deleted.
       this.workingDir = Paths.get("/tmp");
     } else {
       this.workingDir = Files.createTempDir().toPath();
@@ -118,7 +121,10 @@ public class BinaryTypeInference {
             .collect(Collectors.toList()));
 
     // Make global variables interesting
-    output_builder.addInterestingTids(this.getGlobalSymbols().stream().map(BinaryTypeInference::globalSymbolToTid).collect(Collectors.toList()));
+    output_builder.addInterestingTids(
+        this.getGlobalSymbols().stream()
+            .map(BinaryTypeInference::globalSymbolToTid)
+            .collect(Collectors.toList()));
 
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
@@ -151,25 +157,25 @@ public class BinaryTypeInference {
 
   // Currently, we only guess types for globals in the symb tab that are dynamic
   private List<Symbol> getGlobalSymbols() {
-    var ref_man = prog.getReferenceManager();
-    var symb_tab = prog.getSymbolTable();
+    var ref_man = this.prog.getReferenceManager();
+    var symb_tab = this.prog.getSymbolTable();
     ArrayList<Symbol> tot_vars = new ArrayList<>();
-    for (var blk : prog.getMemory().getBlocks()) {
-        if (blk.isExecute()) {
-            var addrs = new AddressSet(blk.getStart(), blk.getEnd());
-            var ref_source_iter = ref_man.getReferenceSourceIterator(addrs, true);
-            while (ref_source_iter.hasNext()) {
-                var curr_src_addr = ref_source_iter.next();
-                for (var ref: ref_man.getReferencesFrom(curr_src_addr)) {
-                    if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
-                        var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
-                        if (symb != null) {
-                            tot_vars.add(symb);
-                        }
-                    }
-                }
+    for (var blk : this.prog.getMemory().getBlocks()) {
+      if (blk.isExecute()) {
+        var addrs = new AddressSet(blk.getStart(), blk.getEnd());
+        var ref_source_iter = ref_man.getReferenceSourceIterator(addrs, true);
+        while (ref_source_iter.hasNext()) {
+          var curr_src_addr = ref_source_iter.next();
+          for (var ref : ref_man.getReferencesFrom(curr_src_addr)) {
+            if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
+              var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
+              if (symb != null) {
+                tot_vars.add(symb);
+              }
             }
+          }
         }
+      }
     }
     return tot_vars;
   }
@@ -186,7 +192,13 @@ public class BinaryTypeInference {
         var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
         var maybe_data = mapping.getDataTypeForTid(symb_tid);
         if (maybe_data.isPresent()) {
-          DataUtilities.createData(this.prog, symb.getAddress(), maybe_data.get(), maybe_data.get().getLength(), false, DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
+          DataUtilities.createData(
+              this.prog,
+              symb.getAddress(),
+              maybe_data.get(),
+              maybe_data.get().getLength(),
+              false,
+              DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
         }
       }
     }

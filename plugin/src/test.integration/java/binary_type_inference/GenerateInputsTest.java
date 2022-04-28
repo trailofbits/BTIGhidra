@@ -3,6 +3,7 @@ package binary_type_inference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
 import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.Pointer;
@@ -12,6 +13,7 @@ import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
 import ghidra.test.AbstractGhidraHeadlessIntegrationTest;
 import ghidra.test.TestEnv;
+import ghidra.util.task.TaskMonitor;
 import java.io.File;
 import java.io.IOException;
 import java.util.Arrays;
@@ -69,7 +71,9 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             program,
             pl,
             Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
+            null,
+            false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
@@ -92,12 +96,11 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     System.out.println(target_sig);
   }
 
-
   @Test
   public void testOldMoooslLinkedListGlobalVariable() throws Exception {
     // For future reference, to get processor:
     // Processor.findOrPossiblyCreateProcessor("x86")
-    LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
+    LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:64:default", "gcc");
     program =
         env.getGhidraProject()
             .importProgram(
@@ -109,7 +112,15 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
                         .getFile()),
                 specPair.getLanguage(),
                 specPair.getCompilerSpec());
+
+    env.getGhidraProject().getAnalysisOptions(program).setBoolean("Decompiler Parameter ID", true);
     env.getGhidraProject().analyze(program, false);
+
+    AutoAnalysisManager analysisMgr = AutoAnalysisManager.getAnalysisManager(program);
+
+    analysisMgr.waitForAnalysis(null, TaskMonitor.DUMMY);
+
+    System.out.println("Done with analysis");
 
     PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
 
@@ -118,7 +129,9 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             program,
             pl,
             Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
+            null,
+            true);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
@@ -132,12 +145,13 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     inf.applyCtype(const_types);
 
-
     var gv_address = program.getAddressFactory().getAddress("0x00104040");
     var hopefully_fixed_data = DataUtilities.getDataAtAddress(program, gv_address);
     var hopefully_fixed_datatype = hopefully_fixed_data.getDataType();
-    
-    assertTrue("Global variable for linked list is not a pointer", hopefully_fixed_datatype instanceof Pointer);
+
+    assertTrue(
+        "Global variable for linked list is not a pointer",
+        hopefully_fixed_datatype instanceof Pointer);
   }
 
   @Test
@@ -173,7 +187,9 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             program,
             pl,
             Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
+            null,
+            false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
