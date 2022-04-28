@@ -2,16 +2,23 @@ package binary_type_inference;
 
 import com.google.common.io.Files;
 
+import binary_type_inference.TypeLibrary.Types;
+import ctypes.Ctypes.Tid;
 import ghidra.app.util.importer.MessageLog;
 import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
+import ghidra.program.model.address.AddressSet;
 import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataType;
+import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.DefaultDataType;
 import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
+import ghidra.program.model.symbol.Symbol;
+import ghidra.program.model.symbol.SymbolUtilities;
+import ghidra.program.model.util.CodeUnitInsertionException;
 import ghidra.util.exception.InvalidInputException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -19,10 +26,12 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 /*
 Path.of(Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath()),
@@ -136,8 +145,51 @@ public class BinaryTypeInference {
     }
   }
 
+  // Currently, we only guess types for globals in the symb tab that are dynamic
+  private List<Symbol> getGlobalSymbols() {
+    var ref_man = prog.getReferenceManager();
+    var symb_tab = prog.getSymbolTable();
+    ArrayList<Symbol> tot_vars = new ArrayList<>();
+    for (var blk : prog.getMemory().getBlocks()) {
+        if (blk.isExecute()) {
+            var addrs = new AddressSet(blk.getStart(), blk.getEnd());
+            var ref_source_iter = ref_man.getReferenceSourceIterator(addrs, true);
+            while (ref_source_iter.hasNext()) {
+                var curr_src_addr = ref_source_iter.next();
+                for (var ref: ref_man.getReferencesFrom(curr_src_addr)) {
+                    if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
+                        var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
+                        if (symb != null) {
+                            tot_vars.add(symb);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return tot_vars;
+  }
+
+  private static Tid globalSymbolToTid(Symbol symb) {
+    // TODO(ian): This breaks a lot of abstraction layers.
+    var tid_name = String.format("glb_%s_%s", symb.getAddress().toString(), symb.getName());
+    return Tid.newBuilder().setAddress(symb.getAddress().toString()).setName(tid_name).build();
+  }
+
+  private void applyCtypesToGlobals(Types mapping) throws CodeUnitInsertionException {
+    for (var symb : this.getGlobalSymbols()) {
+      if (SymbolUtilities.isDynamicSymbolPattern(symb.getName(), false)) {
+        var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
+        var maybe_data = mapping.getDataTypeForTid(symb_tid);
+        if (maybe_data.isPresent()) {
+          DataUtilities.createData(this.prog, symb.getAddress(), maybe_data.get(), maybe_data.get().getLength(), false, DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
+        }
+      }
+    }
+  }
+
   public void applyCtype(Map<String, DataType> constants)
-      throws IOException, InvalidInputException {
+      throws IOException, InvalidInputException, CodeUnitInsertionException {
     var ty_lib =
         TypeLibrary.parseFromInputStream(
             new FileInputStream(this.getCtypesOutPath().toFile()),
@@ -182,6 +234,8 @@ public class BinaryTypeInference {
         }
       }
     }
+
+    this.applyCtypesToGlobals(mapping);
   }
 
   public void run() throws Exception {
