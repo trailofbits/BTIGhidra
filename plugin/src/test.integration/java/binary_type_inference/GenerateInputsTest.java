@@ -4,6 +4,7 @@ import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
 import ghidra.program.model.data.AbstractIntegerDataType;
+import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
@@ -44,7 +45,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
   // correct at the critical point.
 
   @Test
-  public void testMoooslLinkedList() throws Exception {
+  public void testNewMoooslLinkedList() throws Exception {
     // For future reference, to get processor:
     // Processor.findOrPossiblyCreateProcessor("x86")
     LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
@@ -68,7 +69,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             program,
             pl,
             Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"));
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
@@ -89,6 +90,54 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     var target_sig = hopefully_fixed.getSignature();
 
     System.out.println(target_sig);
+  }
+
+
+  @Test
+  public void testOldMoooslLinkedListGlobalVariable() throws Exception {
+    // For future reference, to get processor:
+    // Processor.findOrPossiblyCreateProcessor("x86")
+    LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:32:default", "gcc");
+    program =
+        env.getGhidraProject()
+            .importProgram(
+                new File(
+                    Objects.requireNonNull(
+                            GenerateInputsTest.class
+                                .getClassLoader()
+                                .getResource("binaries/mooosl"))
+                        .getFile()),
+                specPair.getLanguage(),
+                specPair.getCompilerSpec());
+    env.getGhidraProject().analyze(program, false);
+
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
+
+    var inf =
+        new BinaryTypeInference(
+            program,
+            pl,
+            Arrays.asList(
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
+    var const_types = inf.produceArtifacts();
+
+    assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
+    assertTrue(
+        "additional constraints file exisits",
+        inf.getAdditionalConstraintsPath().toFile().exists());
+
+    inf.getCtypes();
+
+    assertTrue("Ctypes dont exist", inf.getCtypesOutPath().toFile().exists());
+
+    inf.applyCtype(const_types);
+
+
+    var gv_address = program.getAddressFactory().getAddress("0x00104040");
+    var hopefully_fixed_data = DataUtilities.getDataAtAddress(program, gv_address);
+    var hopefully_fixed_datatype = hopefully_fixed_data.getDataType();
+    
+    assertTrue("Global variable for linked list is not a pointer", hopefully_fixed_datatype instanceof Pointer);
   }
 
   @Test
@@ -124,7 +173,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
             program,
             pl,
             Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"));
+                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),null,false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
