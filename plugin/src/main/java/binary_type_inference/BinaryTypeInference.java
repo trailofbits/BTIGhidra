@@ -1,15 +1,24 @@
 package binary_type_inference;
 
+import binary_type_inference.TypeLibrary.Types;
 import com.google.common.io.Files;
+import ctypes.Ctypes.Tid;
+import ghidra.app.util.importer.MessageLog;
 import ghidra.framework.Application;
 import ghidra.framework.OSFileNotFoundException;
+import ghidra.program.model.address.AddressSet;
 import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataType;
+import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.DefaultDataType;
+import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
 import ghidra.program.model.symbol.SourceType;
+import ghidra.program.model.symbol.Symbol;
+import ghidra.program.model.symbol.SymbolUtilities;
+import ghidra.program.model.util.CodeUnitInsertionException;
 import ghidra.util.exception.InvalidInputException;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -17,6 +26,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,13 +46,26 @@ public class BinaryTypeInference {
   private final PreservedFunctionList preserved;
   private final Path workingDir;
   private final List<String> extra_script_dirs;
+  private final MessageLog log;
 
   public BinaryTypeInference(
-      Program prog, PreservedFunctionList preserved, List<String> extra_script_dirs) {
+      Program prog,
+      PreservedFunctionList preserved,
+      List<String> extra_script_dirs,
+      MessageLog log,
+      boolean should_save_output) {
+    this.log = log;
     this.prog = prog;
     this.preserved = preserved;
-    this.workingDir = Files.createTempDir().toPath();
-    // this.workingDir = Paths.get("/tmp");
+
+    if (should_save_output) {
+      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform but seems like ghidra
+      // sets this to a different tmp dir that is deleted.
+      this.workingDir = Paths.get("/tmp");
+    } else {
+      this.workingDir = Files.createTempDir().toPath();
+    }
+
     this.extra_script_dirs = extra_script_dirs;
   }
 
@@ -97,6 +120,13 @@ public class BinaryTypeInference {
         Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
             .map(PreservedFunctionList::functionToTid)
             .collect(Collectors.toList()));
+
+    // Make global variables interesting
+    output_builder.addInterestingTids(
+        this.getGlobalSymbols().stream()
+            .map(BinaryTypeInference::globalSymbolToTid)
+            .collect(Collectors.toList()));
+
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
@@ -126,8 +156,62 @@ public class BinaryTypeInference {
     }
   }
 
+  // Currently, we only guess types for globals in the symb tab that are dynamic
+  private List<Symbol> getGlobalSymbols() {
+    var ref_man = this.prog.getReferenceManager();
+    var symb_tab = this.prog.getSymbolTable();
+    ArrayList<Symbol> tot_vars = new ArrayList<>();
+    for (var blk : this.prog.getMemory().getBlocks()) {
+      if (blk.isExecute()) {
+        var addrs = new AddressSet(blk.getStart(), blk.getEnd());
+        var ref_source_iter = ref_man.getReferenceSourceIterator(addrs, true);
+        while (ref_source_iter.hasNext()) {
+          var curr_src_addr = ref_source_iter.next();
+          for (var ref : ref_man.getReferencesFrom(curr_src_addr)) {
+            if (ref.isMemoryReference() && ref.getReferenceType().isData()) {
+              var symb = symb_tab.getPrimarySymbol(ref.getToAddress());
+              if (symb != null) {
+                tot_vars.add(symb);
+              }
+            }
+          }
+        }
+      }
+    }
+    return tot_vars;
+  }
+
+  private static Tid globalSymbolToTid(Symbol symb) {
+    // TODO(ian): This breaks a lot of abstraction layers.
+    var tid_name = String.format("glb_%s_%s", symb.getAddress().toString(), symb.getName());
+    return Tid.newBuilder().setAddress(symb.getAddress().toString()).setName(tid_name).build();
+  }
+
+  private void applyCtypesToGlobals(Types mapping) throws CodeUnitInsertionException {
+    for (var symb : this.getGlobalSymbols()) {
+      if (SymbolUtilities.isDynamicSymbolPattern(symb.getName(), false)) {
+        var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
+        var maybe_data = mapping.getDataTypeForTid(symb_tid);
+        if (maybe_data.isPresent()) {
+          // Since we are setting the type of the data itself we have already done one deref so we
+          // need to deref this datatype when we apply it to the address
+          if (maybe_data.get() instanceof Pointer) {
+            var ptr = (Pointer) maybe_data.get();
+            DataUtilities.createData(
+                this.prog,
+                symb.getAddress(),
+                ptr.getDataType(),
+                ptr.getDataType().getLength(),
+                false,
+                DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
+          }
+        }
+      }
+    }
+  }
+
   public void applyCtype(Map<String, DataType> constants)
-      throws IOException, InvalidInputException {
+      throws IOException, InvalidInputException, CodeUnitInsertionException {
     var ty_lib =
         TypeLibrary.parseFromInputStream(
             new FileInputStream(this.getCtypesOutPath().toFile()),
@@ -172,6 +256,8 @@ public class BinaryTypeInference {
         }
       }
     }
+
+    this.applyCtypesToGlobals(mapping);
   }
 
   public void run() throws Exception {
