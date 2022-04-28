@@ -152,6 +152,12 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     assertTrue(
         "Global variable for linked list is not a pointer",
         hopefully_fixed_datatype instanceof Pointer);
+
+    var ptr = (Pointer) hopefully_fixed_datatype;
+    // Since this is the actual data weve already done one dereference so now we expect to
+    // dereference and find the struct itself
+
+    assertTrue("Gv should deref to a struct", ptr.getDataType() instanceof Structure);
   }
 
   @Test

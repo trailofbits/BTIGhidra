@@ -11,6 +11,7 @@ import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.DefaultDataType;
+import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.FunctionSignature;
 import ghidra.program.model.listing.Program;
@@ -192,13 +193,18 @@ public class BinaryTypeInference {
         var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
         var maybe_data = mapping.getDataTypeForTid(symb_tid);
         if (maybe_data.isPresent()) {
-          DataUtilities.createData(
-              this.prog,
-              symb.getAddress(),
-              maybe_data.get(),
-              maybe_data.get().getLength(),
-              false,
-              DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
+          // Since we are setting the type of the data itself we have already done one deref so we
+          // need to deref this datatype when we apply it to the address
+          if (maybe_data.get() instanceof Pointer) {
+            var ptr = (Pointer) maybe_data.get();
+            DataUtilities.createData(
+                this.prog,
+                symb.getAddress(),
+                ptr.getDataType(),
+                ptr.getDataType().getLength(),
+                false,
+                DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
+          }
         }
       }
     }
