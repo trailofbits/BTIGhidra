@@ -116,6 +116,10 @@ public class BinaryTypeInference {
         Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
             .map(PreservedFunctionList::functionToTid)
             .collect(Collectors.toList()));
+
+    // Make global variables interesting
+    output_builder.addInterestingTids(this.getGlobalSymbols().stream().map(BinaryTypeInference::globalSymbolToTid).collect(Collectors.toList()));
+
     output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
