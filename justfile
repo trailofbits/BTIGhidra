@@ -26,6 +26,8 @@ install:
   ./plugin/gradlew --project-dir ./plugin --parallel install
   mkdir -p $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
   cp -r binary_type_inference/cwe_checker/src/ghidra/p_code_extractor/* $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
+# This is a hack to handle upstream issues, the ghidra script provider will crash if this isnt handled
+  rm -f $GHIDRA_INSTALL_DIR/Ghidra/Features/GhidraServer/data/yajsw-beta-13.01/lib/extended/vfs-webdav/slf4j-jdk14-1.5.0.jar
 reinstall:
   ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE install
 
