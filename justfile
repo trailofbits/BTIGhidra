@@ -24,8 +24,8 @@ test:
 
 install:
   ./plugin/gradlew --project-dir ./plugin --parallel install
-  mkdir -p $GHIDRA_INSTALL_DIR/Ghidra/Extensions/plugin/ghidra_scripts/
-  cp -r binary_type_inference/cwe_checker/src/ghidra/p_code_extractor/* $GHIDRA_INSTALL_DIR/Ghidra/Extensions/plugin/ghidra_scripts/
+  mkdir -p $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
+  cp -r binary_type_inference/cwe_checker/src/ghidra/p_code_extractor/* $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
 reinstall:
   ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE install
 
