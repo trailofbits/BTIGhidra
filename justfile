@@ -16,13 +16,13 @@ test:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain --stacktrace -PBTI_AUTO_REMOVE check
 
 install:
-  ./plugin/gradlew --project-dir ./plugin --parallel install
+  ./plugin/gradlew --project-dir ./plugin --parallel --console plain install
 
 reinstall:
-  ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE install
+  ./plugin/gradlew --project-dir ./plugin --parallel --console plain -PBTI_AUTO_REMOVE install
 
 uninstall-bti:
-  ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE uninstallPreviousBTI
+  ./plugin/gradlew --project-dir ./plugin --parallel --console plain -PBTI_AUTO_REMOVE uninstallPreviousBTI
 
 test-native:
   cd ./binary_type_inference && cargo test

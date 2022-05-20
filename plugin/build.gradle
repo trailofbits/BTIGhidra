@@ -129,7 +129,6 @@ tasks.register('integrationTest', Test) {
     description = "Runs integration tests."
     group = 'verification'
     testLogging {
-        // Uncomment the following if you're feeling nervous
         outputs.upToDateWhen {false}
         showStandardStreams = true
     }
@@ -185,9 +184,9 @@ task uninstallPreviousBTI {
             if (project.hasProperty('BTI_AUTO_REMOVE')) {
                 def ooDir = new File(ghidraInstallDir + "/Ghidra/Extensions/${project.name}/")
                 ooDir.deleteDir()
-                logger.quiet("SUCCESS! Previous standalone Binary Type Inference (BTI) installation was removed automatically by gradle.")
+                logger.quiet("SUCCESS! Previous standalone Binary Type Inference (${project.name}) installation was removed automatically by gradle.")
             } else {
-                throw new GradleException("FATAL ERROR! A previous installation of Binary Type Inference (BTI) was detected. It is recommended that you either manually remove this installation before re-installing BTI, or re-run this gradle installation script with the -PBTI_AUTO_REMOVE option.")
+                throw new GradleException("FATAL ERROR! A previous installation of Binary Type Inference (${project.name}) was detected. It is recommended that you either manually remove this installation before re-installing BTI, or re-run this gradle installation script with the -PBTI_AUTO_REMOVE option.")
             }
         }
     }
@@ -213,8 +212,7 @@ task installZip(type: Exec) {
 
     workingDir ghidraInstallDir + '/Ghidra/Extensions'
 
-    executable = 'unzip'
-    args = ['-o', "${buildExtension.destinationDirectory.get()}/${buildExtension.archiveBaseName.get()}.${buildExtension.archiveExtension.get()}"]
+    commandLine 'unzip', '-o', "${buildExtension.destinationDirectory.get()}/${buildExtension.archiveBaseName.get()}.${buildExtension.archiveExtension.get()}"
 
     dependsOn copyZip
     mustRunAfter copyZip
@@ -244,6 +242,14 @@ task install() {
     }
 }
 // End copy
+
+// Ignore including some files in the zip distribution
+buildExtension {
+    exclude '.idea'
+    exclude 'gradle*'
+    exclude 'lib/os'
+}
+buildExtension.dependsOn copyRustBTIDependencies
 
 protobuf {
     protoc {
