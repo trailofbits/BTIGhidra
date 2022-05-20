@@ -67,4 +67,4 @@ jobs:
 
       - name: 'Lint, Build, and Test BTI'
         run: |
-          just platform=linux_x86_64 install-native test
+          just test

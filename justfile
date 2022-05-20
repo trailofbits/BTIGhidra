@@ -6,13 +6,6 @@
 
 platform := replace(os(),"macos","mac") + "_" + replace(arch(), "aarch64","arm_64")
 
-build-native-binary: 
-  cd ./binary_type_inference && cargo build --release
-
-install-native: build-native-binary
-  rm -f ./plugin/os/{{platform}}/json_to_constraints
-  cp ./binary_type_inference/target/release/json_to_constraints ./plugin/os/{{platform}}/
-
 format:
   ./plugin/gradlew --project-dir ./plugin spotlessApply
 
@@ -20,16 +13,10 @@ lint:
   ./plugin/gradlew --project-dir ./plugin spotlessCheck
 
 test:
-  ./plugin/gradlew --project-dir ./plugin --parallel --console plain --stacktrace check
+  ./plugin/gradlew --project-dir ./plugin --parallel --console plain --stacktrace -PBTI_AUTO_REMOVE check
 
-# This is a hack to handle upstream issues, the ghidra script provider will crash if this isnt handled
-patch-ghidra:
-  rm -f $GHIDRA_INSTALL_DIR/Ghidra/Features/GhidraServer/data/yajsw-beta-13.01/lib/extended/vfs-webdav/slf4j-jdk14-1.5.0.jar
-
-install: patch-ghidra
+install:
   ./plugin/gradlew --project-dir ./plugin --parallel install
-  mkdir -p $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
-  cp -r binary_type_inference/cwe_checker/src/ghidra/p_code_extractor/* $GHIDRA_INSTALL_DIR/Ghidra/Extensions/BTIGhidra/ghidra_scripts/
 
 reinstall:
   ./plugin/gradlew --project-dir ./plugin --parallel -PBTI_AUTO_REMOVE install
