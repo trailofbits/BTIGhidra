@@ -26,9 +26,7 @@ public class GetBinaryJson {
   private final ProgramSelection sel;
   private final ProgramSelection highlight;
   private final PluginTool tool;
-  private final List<String> extra_script_dirs;
   private final ResourceFile pcodeExtractorScript;
-  private final GhidraState scriptState;
 
   public GetBinaryJson(
       PluginTool tool,
@@ -44,7 +42,6 @@ public class GetBinaryJson {
     this.sel = sel;
     this.highlight = highlight;
     this.tool = tool;
-    this.extra_script_dirs = extra_script_dirs;
 
     if (GhidraScriptUtil.getBundleHost() == null) {
       GhidraScriptUtil.initialize(new BundleHost(), extra_script_dirs);
@@ -52,23 +49,21 @@ public class GetBinaryJson {
 
     this.pcodeExtractorScript = GhidraScriptUtil.findScriptByName("PcodeExtractor");
     Objects.requireNonNull(this.pcodeExtractorScript);
-    this.scriptState = new GhidraState(tool, project, prog, loc, sel, highlight);
   }
 
   void generateJSONIR(Path target_out) throws Exception {
     GhidraScriptProvider provider = GhidraScriptUtil.getProvider(this.pcodeExtractorScript);
-    PrintWriter writer = new PrintWriter(System.err);
-    GhidraScript script = provider.getScriptInstance(this.pcodeExtractorScript, writer);
+    GhidraScript script =
+        provider.getScriptInstance(this.pcodeExtractorScript, new PrintWriter(System.err));
     String[] args = {target_out.toString()};
     script.setScriptArgs(args);
 
     ResourceFile srcFile = script.getSourceFile();
     String scriptName =
         srcFile != null ? srcFile.getAbsolutePath() : (script.getClass().getName() + ".class");
+    var scriptState = new GhidraState(tool, project, prog, loc, sel, highlight);
     try {
-      PrintWriter writerScript = new PrintWriter(System.out);
-      script.execute(scriptState, TaskMonitor.DUMMY, writerScript);
-      writer.flush();
+      script.execute(scriptState, TaskMonitor.DUMMY, new PrintWriter(System.out));
     } catch (Exception exc) {
       String logErrorMsg =
           "REPORT SCRIPT ERROR: \""
