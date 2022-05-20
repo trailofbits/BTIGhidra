@@ -33,7 +33,7 @@ plugins {
     id 'eclipse'
     id 'idea'
     id "com.diffplug.spotless" version "6.1.2"
-    id "com.google.protobuf" version "0.8.17"
+    id "com.google.protobuf" version "0.8.18"
 }
 
 //----------------------START "DO NOT MODIFY" SECTION------------------------------
@@ -290,13 +290,6 @@ protobuf {
     }
     generateProtoTasks {
         all().each { task -> task.dependsOn copyDependencies }
-    }
-}
-
-tasks.whenTaskAdded { task ->
-    // For some reason, we need to do this manually
-    if (task.name == 'extractIncludeProto'){
-        task.getDependsOn().add(copyDependencies)
     }
 }
 
