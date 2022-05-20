@@ -263,6 +263,8 @@ task installCWECheckerScripts(type: Copy) {
 }
 
 task install() {
+    // NOTE: The CWE Checker scripts are not actually included in the zip file.
+    // Should they be?
     dependsOn installZip, installCWECheckerScripts
 
     group = "Installation"
@@ -270,8 +272,7 @@ task install() {
     //title = "Install zip"
 
     doLast {
-        // Empty action list
-        logger.quiet("Installed Trail of Bits Binary Type Inference from zip!")
+        logger.quiet("Installed Trail of Bits Binary Type Inference (${project.name}) from zip!")
     }
 }
 // End copy

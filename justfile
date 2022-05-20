@@ -1,14 +1,14 @@
-format:
-  ./plugin/gradlew --project-dir ./plugin spotlessApply
-
-lint:
-  ./plugin/gradlew --project-dir ./plugin spotlessCheck
-
 build-native-binary:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain :buildRustBTI
 
 install-native:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain :copyRustBTIDependencies
+
+format:
+  ./plugin/gradlew --project-dir ./plugin spotlessApply
+
+lint:
+  ./plugin/gradlew --project-dir ./plugin spotlessCheck
 
 test:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain --stacktrace -PBTI_AUTO_REMOVE check
