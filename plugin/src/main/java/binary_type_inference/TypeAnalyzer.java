@@ -184,7 +184,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
       throws CancelledException {
 
     // TODO: Perform analysis when things get added to the 'program'. Return true if
-    // the analysis succeeded.
+    // the
+    // analysis succeeded.
 
     Optional<PreservedFunctionList> maybe_preserved = Optional.empty();
     if (!this.opts.preserved_functions_file.isEmpty()) {
