@@ -73,10 +73,43 @@ dependencies {
     testRuntimeOnly files("lib")
 }
 
+// ***** Copied from https://medium.com/@esycat/gradle-exec-output-f18f297c068 ****
+import java.io.ByteArrayOutputStream;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
+public class LogOutputStream extends ByteArrayOutputStream {
+
+    private final Logger logger;
+    private final LogLevel level;
+
+    public LogOutputStream(Logger logger, LogLevel level) {
+        this.logger = logger;
+        this.level = level;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public LogLevel getLevel() {
+        return level;
+    }
+
+    @Override
+    public void flush() {
+        logger.log(level, toString());
+        reset();
+    }
+}
+// ***** End copy from https://medium.com/@esycat/gradle-exec-output-f18f297c068 ****
+
 task buildRustBTI(type: Exec) {
     workingDir '../binary_type_inference'
     commandLine 'cargo', 'build', '--release'
-    errorOutput new ByteArrayOutputStream()
+
+    standardOutput new LogOutputStream(logger, LogLevel.INFO)
+    errorOutput    new LogOutputStream(logger, LogLevel.ERROR)
+
     outputs.upToDateWhen { false } // ensures never cached, always runs if user enables
 }
 
