@@ -15,8 +15,8 @@ jobs:
 
       - name: 'Install tools'
         run: |
-          # just command runner https://github.com/casey/just#pre-built-binaries
-          curl --proto '=https' --tlsv1.2 -sSf https://just.systems/install.sh | bash -s -- --to "${HOME}/.local/bin"
+          # just command runner https://github.com/casey/just
+          brew install just
           # Check markdown links
           sudo npm install -g markdown-link-check
 
