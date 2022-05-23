@@ -10,7 +10,7 @@ import org.apache.commons.vfs2.FileNotFoundException;
 
 public class BinaryTypeInferenceRunner {
   // Executable tool name to search for
-  public static final String DEFAULT_TOOL_NAME = "json_to_constraints";
+  public static final String DEFAULT_TOOL_NAME = "binary_to_types";
 
   // private final Program program;
   private final Path typeInferenceTool;
