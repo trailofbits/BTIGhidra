@@ -16,8 +16,8 @@ import ghidra.test.TestEnv;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
 import java.io.IOException;
-import java.util.Arrays;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 import org.junit.After;
@@ -27,13 +27,19 @@ import org.junit.Test;
 public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
   private static TestEnv env;
 
-  private static Program program;
+  private static String pcodeExtractorDir;
 
-  private final ClassLoader classLoader = getClass().getClassLoader();
+  private static Program program;
 
   @Before
   public void setUp() throws IOException {
     env = new TestEnv(this.getClass().getName());
+
+    pcodeExtractorDir =
+        new File(
+                System.getProperty("user.dir")
+                    + "/../binary_type_inference/cwe_checker/src/ghidra/p_code_extractor")
+            .getCanonicalPath();
   }
 
   @After
@@ -66,14 +72,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
 
-    var inf =
-        new BinaryTypeInference(
-            program,
-            pl,
-            Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
-            null,
-            false);
+    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
@@ -124,14 +123,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
 
-    var inf =
-        new BinaryTypeInference(
-            program,
-            pl,
-            Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
-            null,
-            true);
+    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
@@ -188,14 +180,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     PreservedFunctionList pl = new PreservedFunctionList(pres);
 
-    var inf =
-        new BinaryTypeInference(
-            program,
-            pl,
-            Arrays.asList(
-                "/Users/ian/Code/BTIGhidra/binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"),
-            null,
-            false);
+    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, false);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());

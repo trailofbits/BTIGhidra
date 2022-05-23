@@ -32,9 +32,8 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id 'java'
     id "com.diffplug.spotless" version "6.1.2"
-    id "com.google.protobuf" version "0.8.17"
+    id "com.google.protobuf" version "0.8.18"
 }
 
 //----------------------START "DO NOT MODIFY" SECTION------------------------------
@@ -55,12 +54,17 @@ else {
 }
 //----------------------END "DO NOT MODIFY" SECTION-------------------------------
 
+// For OS directory detection and naming
+apply from: new File(ghidraInstallDir).getCanonicalPath() + "/GPL/nativePlatforms.gradle"
+
 repositories {
     mavenCentral()
 }
 
+def protobufVersion = '3.17.3'
+
+// Our dependencies need to be stated first for classpath
 dependencies {
-    implementation 'com.google.protobuf:protobuf-java:3.17.3'
     testImplementation 'junit:junit:4.13.2'
     testImplementation 'org.assertj:assertj-core:3.22.0'
     testImplementation 'org.mockito:mockito-inline:4.2.0'
@@ -69,13 +73,56 @@ dependencies {
     testRuntimeOnly files("lib")
 }
 
+// ***** Copied from https://medium.com/@esycat/gradle-exec-output-f18f297c068 ****
+import java.io.ByteArrayOutputStream;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.LogLevel;
+public class LogOutputStream extends ByteArrayOutputStream {
+
+    private final Logger logger;
+    private final LogLevel level;
+
+    public LogOutputStream(Logger logger, LogLevel level) {
+        this.logger = logger;
+        this.level = level;
+    }
+
+    public Logger getLogger() {
+        return logger;
+    }
+
+    public LogLevel getLevel() {
+        return level;
+    }
+
+    @Override
+    public void flush() {
+        logger.log(level, toString());
+        reset();
+    }
+}
+// ***** End copy from https://medium.com/@esycat/gradle-exec-output-f18f297c068 ****
+
+task buildRustBTI(type: Exec) {
+    workingDir '../binary_type_inference'
+    commandLine 'cargo', 'build', '--release'
+
+    standardOutput new LogOutputStream(logger, LogLevel.INFO)
+    errorOutput    new LogOutputStream(logger, LogLevel.ERROR)
+
+    outputs.upToDateWhen { false } // ensures never cached, always runs if user enables
+}
+
+task copyRustBTIDependencies(type: Copy, dependsOn: buildRustBTI) {
+    from '../binary_type_inference/target/release/json_to_constraints'
+    into layout.projectDirectory.dir("os/${currentPlatformName}")
+}
+
 // Copy native dependencies. Required for tests to find os-specific executables
-task copyNativeDependencies(type: Copy) {
+task copyNativeDependencies(type: Copy, dependsOn: copyRustBTIDependencies) {
     from layout.projectDirectory.dir("os")
     into layout.projectDirectory.dir("lib/os")
 }
-
-project.tasks.findByName('compileJava').dependsOn copyNativeDependencies
 
 sourceSets {
     main {
@@ -102,14 +149,12 @@ sourceSets {
     }
 }
 
-
-
 // Unit tests
 test {
     useJUnit()
 
     // Do format linting before tests
-    dependsOn spotlessCheck
+    dependsOn spotlessCheck, copyNativeDependencies
 }
 
 // Longer integration tests
@@ -127,6 +172,8 @@ tasks.register('integrationTest', Test) {
     // JVM for each test...
     forkEvery 1
 
+    dependsOn spotlessCheck, copyNativeDependencies
+
     shouldRunAfter test
 }
 
@@ -134,6 +181,16 @@ configurations {
     integrationCompileOnly.extendsFrom testCompileOnly
     integrationImplementation.extendsFrom testImplementation
     integrationRuntimeOnly.extendsFrom testRuntimeOnly
+}
+
+check.dependsOn integrationTest
+
+idea {
+    module {
+        // Have the integration tests show up as Intellij test directory
+        testSourceDirs += project.sourceSets.integration.java.srcDirs
+        testSourceDirs += project.sourceSets.integration.resources.srcDirs
+    }
 }
 
 tasks.withType(Test).configureEach {
@@ -154,64 +211,83 @@ task uninstallPreviousBTI {
     doFirst {
 
         // check if a previous BTI installation exists
-        if (file(ghidraInstallDir + '/Ghidra/Extensions/' + 'BinaryTypeInference/').exists()) {
+        if (file(ghidraInstallDir + "/Ghidra/Extensions/${project.name}/").exists()) {
 
             // automatically remove past install if user specifies
             if (project.hasProperty('BTI_AUTO_REMOVE')) {
-                def ooDir = new File(ghidraInstallDir + '/Ghidra/Extensions/' + 'BTI/')
+                def ooDir = new File(ghidraInstallDir + "/Ghidra/Extensions/${project.name}/")
                 ooDir.deleteDir()
-                logger.quiet("SUCCESS! Previous standalone Binary Type Inference (BTI) installation was removed automatically by gradle.")
+                logger.quiet("SUCCESS! Previous standalone Binary Type Inference (${project.name}) installation was removed automatically by gradle.")
             } else {
-                throw new GradleException("FATAL ERROR! A previous installation of Binary Type Inference (BTI) was detected. It is recommended that you either manually remove this installation before re-installing BTI, or re-run this gradle installation script with the -PBTI_AUTO_REMOVE option.")
+                throw new GradleException("FATAL ERROR! A previous installation of Binary Type Inference (${project.name}) was detected. It is recommended that you either manually remove this installation before re-installing BTI, or re-run this gradle installation script with the -PBTI_AUTO_REMOVE option.")
             }
         }
     }
 
     outputs.upToDateWhen { false } // ensures never cached, always runs if user enables
 }
-buildHelp.dependsOn uninstallPreviousBTI
+compileJava.dependsOn uninstallPreviousBTI
 
 task copyZip(type: Copy) {
 
     group = "Installation"
     description = "Copies zip contents into special Extensions directory so user may enable or disable easily with reinstalling from gradle each time."
 
-    from "$buildExtension.destinationDir/$buildExtension.baseName.$buildExtension.extension"
+    from "${buildExtension.destinationDirectory.get()}/${buildExtension.archiveBaseName.get()}.${buildExtension.archiveExtension.get()}"
     into ghidraInstallDir + '/Extensions/Ghidra'
 
     dependsOn buildExtension
 }
 
 task installZip(type: Exec) {
-
     group = "Installation"
     description = "Installs the zip package in installed Ghidra's default extension directory"
 
     workingDir ghidraInstallDir + '/Ghidra/Extensions'
-    commandLine 'unzip', '-o', "$buildExtension.destinationDir/$buildExtension.baseName.$buildExtension.extension"
+
+    commandLine 'unzip', '-o', "${buildExtension.destinationDirectory.get()}/${buildExtension.archiveBaseName.get()}.${buildExtension.archiveExtension.get()}"
 
     dependsOn copyZip
     mustRunAfter copyZip
 }
 
+task installCWECheckerScripts(type: Copy) {
+    group = "Installation"
+    description = "Copies the submodule'd CWE Checker Ghidra scripts"
+
+    from "../binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"
+    into ghidraInstallDir + "/Ghidra/Extensions/${project.name}/ghidra_scripts"
+    include '**/*.*'
+
+    mustRunAfter installZip
+}
+
 task install() {
-    dependsOn installZip
+    // NOTE: The CWE Checker scripts are not actually included in the zip file.
+    // Should they be?
+    dependsOn installZip, installCWECheckerScripts
 
     group = "Installation"
     description = "Alternate name for installZip task"
     //title = "Install zip"
 
     doLast {
-        // Empty action list
-        logger.quiet("Installed Trail of Bits Binary Type Inference from zip!")
+        logger.quiet("Installed Trail of Bits Binary Type Inference (${project.name}) from zip!")
     }
 }
 // End copy
 
+// Ignore including some files in the zip distribution
+buildExtension {
+    exclude '.idea'
+    exclude 'gradle*'
+    exclude 'lib/os'
+}
+buildExtension.dependsOn copyRustBTIDependencies
+
 protobuf {
-    generatedFilesBaseDir = "$projectDir/src"
     protoc {
-        artifact = "com.google.protobuf:protoc:3.17.3"
+        artifact = "com.google.protobuf:protoc:${protobufVersion}"
     }
     generateProtoTasks {
         all().each { task -> task.dependsOn copyDependencies }

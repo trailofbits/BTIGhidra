@@ -8,3 +8,5 @@
 # Ignore copied files
 /lib/os
 /gradle.properties
+
+**/json_to_constraints
