@@ -114,7 +114,7 @@ task buildRustBTI(type: Exec) {
 }
 
 task copyRustBTIDependencies(type: Copy, dependsOn: buildRustBTI) {
-    from '../binary_type_inference/target/release/json_to_constraints'
+    from '../binary_type_inference/target/release/binary_to_types'
     into layout.projectDirectory.dir("os/${currentPlatformName}")
 }
 
