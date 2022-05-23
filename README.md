@@ -19,7 +19,7 @@ The following must be installed:
 Make sure you have an environment variable set to the Ghidra installation directory:
 
 ```sh
-export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.1.2_PUBLIC
+export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.1.4_PUBLIC
 ```
 
 Using the [just](https://github.com/casey/just) tool (or view the [`justfile`](./justfile) for common workflow commands):
