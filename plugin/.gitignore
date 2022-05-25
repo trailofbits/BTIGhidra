@@ -9,4 +9,4 @@
 /lib/os
 /gradle.properties
 
-**/json_to_constraints
+**/binary_to_types
