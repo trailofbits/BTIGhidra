@@ -44,6 +44,8 @@ Import the binary `./binary_type_inference/test_data/mooosl` into a Ghidra proje
 
 ![analysis options window with Decompiler Parameter ID checked](resources/analysisParameterID.png)
 
+Running Decompiler Parameter ID is important because the current type inference algorithm relies on a priori knowledge of where parameters for a given function are stored. 
+
 ### Exploring the Binary
 
 To prove that the inference algorithm is actually doing something, feel free to explore the binary at this time. 
@@ -107,4 +109,70 @@ Enable the checkbox next to `Type Inference` if you would like to save debug out
 
 ![shows analysis options window with Type Inference pass checked](resources/enableTypeInference.png)
 
-Click `Analyze`
+Click `Analyze` and wait for the progress bar to finish.
+
+
+Lookup's decompilation should update to:
+```c
+struct_for_node_0_20 * FUN_001014fb(void *param_1,size_t param_2)
+
+{
+  int iVar1;
+  ulong uVar2;
+  struct_for_node_0_20 *local_18;
+  
+  uVar2 = FUN_001013db(param_1,param_2);
+  local_18 = (&PTR_00104040)[(uint)(uVar2 & 0xffffffff) & 0xfff];
+  while( true ) {
+    if (local_18 == (struct_for_node_0_20 *)0x0) {
+      return (struct_for_node_0_20 *)0x0;
+    }
+    if ((((uVar2 & 0xffffffff) == local_18->field_at_32) && (param_2 == local_18->field_at_16)) &&
+       (iVar1 = memcmp(param_1,(void *)local_18->field_at_0,param_2), iVar1 == 0)) break;
+    local_18 = local_18->field_at_40;
+  }
+  return local_18;
+}
+```
+
+Right clicking the `struct_for_node_0_20` and selecting `Edit Datatype` should open the data type window:
+
+
+![analysis dropdown menu for ghidra](resources/structEditor.png)
+
+The struct definitions reveals that all 6 fields are recovered. Not all 6 fields are accessed in lookup, demonstrating interprocedural inference.
+
+For instance the delete function allows us to observe an access to the field at 24:
+```c
+undefined FUN_00101672(void)
+
+{
+  long in_FS_OFFSET;
+  void *local_28;
+  undefined8 local_20;
+  struct_for_node_0_20 *local_18;
+  long local_10;
+  
+  local_10 = *(long *)(in_FS_OFFSET + 0x28);
+  local_28 = (void *)0x0;
+  local_20 = FUN_001012ed((undefined *)&local_28);
+  local_18 = FUN_001014fb(local_28,local_20);
+  if (local_18 == (struct_for_node_0_20 *)0x0) {
+    puts("err");
+  }
+  else {
+    FUN_00101436(local_18->field_at_8,local_18->field_at_24);
+    puts("ok");
+  }
+  free(local_28);
+  if (local_10 != *(long *)(in_FS_OFFSET + 0x28)) {
+                    /* WARNING: Subroutine does not return */
+    __stack_chk_fail();
+  }
+  return 0;
+}
+```
+
+### A Note on Global Variables
+
+Ghidra does not currently have a strong notion of global variables or global variable types. To simulate global variable types we create a data type at the address of the global with the type of the global. This artifact can be observed by 
