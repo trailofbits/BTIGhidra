@@ -13,6 +13,9 @@ lint:
 test:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain --stacktrace -PBTI_AUTO_REMOVE check
 
+build:
+  ./plugin/gradlew --project-dir ./plugin --parallel --console plain
+
 install:
   ./plugin/gradlew --project-dir ./plugin --parallel --console plain install
 
