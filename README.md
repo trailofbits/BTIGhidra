@@ -19,7 +19,7 @@ There is a [Dockerfile](./Dockerfile) that provides an environment that is able 
 ```sh
 $ docker build -t bti .
 # Drop into the built container with this repo mapped in
-# You can run the rest of the commands within the Docker container
+# You can run the rest of the commands in the README within the Docker container
 $ docker run --rm -t -i -v "$(pwd):/home/tob/workspace" -w /home/tob/workspace bti /bin/bash
 ```
 
@@ -37,15 +37,27 @@ Using the [just](https://github.com/casey/just) tool (or view the [`justfile`](.
 just build
 ```
 
-After building, you can find the zipped extension in `plugin/dist` directory
+After building, you can find the zipped plugin in `plugin/dist` directory
 
 ## Installing
 
-This command will build the zip and install it into the Ghidra directory specified by `GHIDRA_INSTALL_DIR`
+If you are not using the Docker container, this command will build the zip and install it into the Ghidra directory specified by `GHIDRA_INSTALL_DIR`
 
 ```sh
 just install
 ```
+
+If you built using Docker, then you can only use the resulting built plugin on a Linux distribution newer than Ubuntu 20.04.
+
+To install the plugin built by the Docker container, open Ghidra 10.1.4 on your host machine:
+
+1. Navigate and click on `File -> Install Extensions...`
+2. Click on the `+` icon in the upper right corner of the window
+3. Navigate to the path of this repo under `plugin/dist` and select the latest built `ghidra_10.1.4_PUBLIC_<date>_BTIGhidra.zip` file and hit `OK` to finish the selection
+4. Hit `OK` again if you do not see the message to "restart Ghidra"
+5. Restart Ghidra
+
+The plugin is now installed!
 
 ## Testing
 
