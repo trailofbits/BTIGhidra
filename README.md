@@ -25,7 +25,7 @@ $ docker run --rm -t -i -v "$(pwd):/home/tob/workspace" -w /home/tob/workspace b
 
 ## Building
 
-Make sure you have an environment variable set to the Ghidra installation directory:
+Make sure you have an environment variable set to the Ghidra installation directory (this is already set up in the Docker image/container):
 
 ```sh
 export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.1.4_PUBLIC
