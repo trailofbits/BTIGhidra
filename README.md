@@ -59,6 +59,10 @@ To install the plugin built by the Docker container, open Ghidra 10.1.4 on your 
 
 The plugin is now installed!
 
+## Usage
+
+[DEMO.md](DEMO.md) walks through how to use the installed plugin to infer types on the mooosl ctf challenge.
+
 ## Testing
 
 ```sh

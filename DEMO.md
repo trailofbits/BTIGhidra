@@ -175,4 +175,10 @@ undefined FUN_00101672(void)
 
 ### A Note on Global Variables
 
-Ghidra does not currently have a strong notion of global variables or global variable types. To simulate global variable types we create a data type at the address of the global with the type of the global. This artifact can be observed by 
+Ghidra does not currently have a strong notion of global variables or global variable types. To simulate global variable types we create a data type at the address of the global with the type of the global. This artifact can be observed by double clicking on `PTR_00104040` in the lookup function.
+
+This action will jump the listing window to the address of the global:
+
+The below image shows how the type is inserted to hint to the decompiler that usages of this address are of type `struct_for_node_20**` (the type inserted there is `struct_for_node*` making the address itself of type `struct_for_node_20**`).
+
+![shows the listing window view of the global at 104040 with the data type hack](resources/globalBehavior.png)
