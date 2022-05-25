@@ -212,24 +212,26 @@ public class BinaryTypeInference {
 
   public void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException, CodeUnitInsertionException {
+    var unknown_ty_builder =
+        new IUnknownTypeBuilder() {
+
+          @Override
+          public DataType getDefaultUnkownType() {
+            // TODO Auto-generated method stub
+            return DefaultDataType.dataType;
+          }
+
+          @Override
+          public DataType getUnknownDataTypeWithSize(int new_size) {
+            // TODO Auto-generated method stub
+            return Undefined.getUndefinedDataType(new_size);
+          }
+        };
     var ty_lib =
         TypeLibrary.parseFromInputStream(
             new FileInputStream(this.getCtypesOutPath().toFile()),
             constants,
-            new IUnknownTypeBuilder() {
-
-              @Override
-              public DataType getDefaultUnkownType() {
-                // TODO Auto-generated method stub
-                return DefaultDataType.dataType;
-              }
-
-              @Override
-              public DataType getUnknownDataTypeWithSize(int new_size) {
-                // TODO Auto-generated method stub
-                return Undefined.getUndefinedDataType(new_size);
-              }
-            },
+            unknown_ty_builder,
             this.prog.getDataTypeManager());
 
     var mapping = ty_lib.buildMapping();
@@ -245,12 +247,17 @@ public class BinaryTypeInference {
         assert (unwrapped_ty instanceof FunctionSignature);
         var sig = (FunctionSignature) unwrapped_ty;
         var args = sig.getArguments();
-        func.setReturnType(sig.getReturnType(), SourceType.ANALYSIS);
+        func.setReturnType(
+            unknown_ty_builder.refineDataTypeWithSize(
+                sig.getReturnType(), func.getReturn().getLength()),
+            SourceType.ANALYSIS);
         var params = func.getParameters();
         var ind = 0;
         for (var par : params) {
           if (ind < args.length) {
-            par.setDataType(args[ind].getDataType(), SourceType.ANALYSIS);
+            par.setDataType(
+                unknown_ty_builder.refineDataTypeWithSize(args[ind].getDataType(), par.getLength()),
+                SourceType.ANALYSIS);
           }
           ind++;
         }
