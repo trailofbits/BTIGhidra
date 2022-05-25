@@ -1,0 +1,9 @@
+# pcode extractor scripts
+/bil
+/internal
+/serializer
+/symbol
+/term
+AnalysisOptPrescript.java
+PcodeExtractor.java
+LICENSE
