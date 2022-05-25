@@ -1,1 +1,1 @@
-Java source directory to hold module-specific Ghidra scripts.
+These scripts are from the [`cwe_checker`](https://github.com/fkie-cad/cwe_checker) project (or a fork of it, like https://github.com/trailofbits/cwe_checker --- see the repo that is a submodule of this project). The scripts are copied into this directory when the plugin is built. The copied LICENSE applies to the `cwe_checker` repo and all source files copied to this directory.

@@ -118,6 +118,14 @@ task copyRustBTIDependencies(type: Copy, dependsOn: buildRustBTI) {
     into layout.projectDirectory.dir("os/${currentPlatformName}")
 }
 
+task copyCWECheckerScripts(type: Copy) {
+    description = "Copies the submodule'd CWE Checker Ghidra scripts"
+
+    from "../binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"
+    from "../binary_type_inference/cwe_checker/LICENSE"
+    into layout.projectDirectory.dir("ghidra_scripts")
+}
+
 // Copy native dependencies. Required for tests to find os-specific executables
 task copyNativeDependencies(type: Copy, dependsOn: copyRustBTIDependencies) {
     from layout.projectDirectory.dir("os")
@@ -251,21 +259,10 @@ task installZip(type: Exec) {
     mustRunAfter copyZip
 }
 
-task installCWECheckerScripts(type: Copy) {
-    group = "Installation"
-    description = "Copies the submodule'd CWE Checker Ghidra scripts"
-
-    from "../binary_type_inference/cwe_checker/src/ghidra/p_code_extractor"
-    into ghidraInstallDir + "/Ghidra/Extensions/${project.name}/ghidra_scripts"
-    include '**/*.*'
-
-    mustRunAfter installZip
-}
-
 task install() {
     // NOTE: The CWE Checker scripts are not actually included in the zip file.
     // Should they be?
-    dependsOn installZip, installCWECheckerScripts
+    dependsOn installZip
 
     group = "Installation"
     description = "Alternate name for installZip task"
@@ -283,7 +280,7 @@ buildExtension {
     exclude 'gradle*'
     exclude 'lib/os'
 }
-buildExtension.dependsOn copyRustBTIDependencies
+buildExtension.dependsOn copyRustBTIDependencies, copyCWECheckerScripts
 
 protobuf {
     protoc {
@@ -311,7 +308,12 @@ spotless {
     java {
         target 'src/*/java/**/*.java', 'ghidra_scripts/*.java'
         importOrder() // standard import order
-        targetExclude('src/main/java/ctypes/Ctypes.java', 'src/main/java/constraints/Constraints.java')
+        targetExclude(
+            'src/main/java/ctypes/Ctypes.java',
+            'src/main/java/constraints/Constraints.java',
+            // cwe_checker pcode extractor source
+            'ghidra_scripts/**/*.java'
+        )
         removeUnusedImports()
 
         googleJavaFormat('1.13.0')
