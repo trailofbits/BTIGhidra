@@ -19,7 +19,7 @@ There is a [Dockerfile](./Dockerfile) that provides an environment that is able 
 ```sh
 $ docker build -t bti .
 # Drop into the built container with this repo mapped in
-# You can run the rest of the command within the Docker container
+# You can run the rest of the commands within the Docker container
 $ docker run --rm -t -i -v "$(pwd):/home/tob/workspace" -w /home/tob/workspace bti /bin/bash
 ```
 
