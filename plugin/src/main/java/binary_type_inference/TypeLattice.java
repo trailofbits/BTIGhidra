@@ -349,7 +349,7 @@ public class TypeLattice {
     return Stream.concat(Stream.concat(bottom_cons, top_cons), generated_cons);
   }
 
-  OutputBuilder getOutputBuilder() {
+  public OutputBuilder getOutputBuilder() {
     var collected_res = this.collectSignatureConstraints();
 
     var constraints = collected_res.getConstraints();

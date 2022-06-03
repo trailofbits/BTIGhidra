@@ -75,7 +75,7 @@ public class OutputBuilder {
   }
 
   // TODO(ian): Code gen this with jtd.
-  void buildLattice(File file) throws IOException {
+  public void buildLattice(File file) throws IOException {
     JsonObject jobj = new JsonObject();
 
     var bot = new JsonPrimitive(BOTTOM_STRING);
@@ -145,7 +145,7 @@ public class OutputBuilder {
     }
   }
 
-  void buildAdditionalConstraints(OutputStream file) throws IOException {
+  public void buildAdditionalConstraints(OutputStream file) throws IOException {
     OutputBuilder.writeLengthDelimitedMessages(file, this.additional_constraints);
     file.close();
   }
