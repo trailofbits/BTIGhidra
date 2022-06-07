@@ -102,15 +102,16 @@ public class BinaryTypeInference {
     return this.workingDir;
   }
 
-  private static java.util.function.Function<DataType, Optional<List<String>>> strat = (DataType inputtype) -> {
-    if (inputtype instanceof AbstractIntegerDataType) {
-      return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
-    } else {
-      return Optional.empty();
-    }
-  };
+  private static java.util.function.Function<DataType, Optional<List<String>>> strat =
+      (DataType inputtype) -> {
+        if (inputtype instanceof AbstractIntegerDataType) {
+          return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
+        } else {
+          return Optional.empty();
+        }
+      };
 
-  public static TypeLattice  createTypeLattice(PreservedFunctionList preserved) {
+  public static TypeLattice createTypeLattice(PreservedFunctionList preserved) {
     return new TypeLattice(preserved.getTidMap(), List.of(strat), true);
   }
 
@@ -118,8 +119,6 @@ public class BinaryTypeInference {
     GetBinaryJson ir_generator =
         new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
-
-   
 
     // True so that we dont generate type constants for void types.
     var lattice_gen = createTypeLattice(this.preserved);
