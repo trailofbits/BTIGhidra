@@ -98,22 +98,30 @@ public class BinaryTypeInference {
     return Paths.get(this.workingDir.toString(), "lattice.json");
   }
 
+  public Path getWorkingDir() {
+    return this.workingDir;
+  }
+
+  private static java.util.function.Function<DataType, Optional<List<String>>> strat =
+      (DataType inputtype) -> {
+        if (inputtype instanceof AbstractIntegerDataType) {
+          return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
+        } else {
+          return Optional.empty();
+        }
+      };
+
+  public static TypeLattice createTypeLattice(PreservedFunctionList preserved) {
+    return new TypeLattice(preserved.getTidMap(), List.of(strat), true);
+  }
+
   public Map<String, DataType> produceArtifacts() throws Exception {
     GetBinaryJson ir_generator =
         new GetBinaryJson(null, this.prog, null, null, null, null, this.extra_script_dirs);
     ir_generator.generateJSONIR(this.getIROut());
 
-    java.util.function.Function<DataType, Optional<List<String>>> strat =
-        (DataType inputtype) -> {
-          if (inputtype instanceof AbstractIntegerDataType) {
-            return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
-          } else {
-            return Optional.empty();
-          }
-        };
-
     // True so that we dont generate type constants for void types.
-    var lattice_gen = new TypeLattice(this.preserved.getTidMap(), List.of(strat), true);
+    var lattice_gen = createTypeLattice(this.preserved);
     var output_builder = lattice_gen.getOutputBuilder();
     output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
     output_builder.addInterestingTids(

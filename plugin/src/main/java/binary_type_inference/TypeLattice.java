@@ -13,6 +13,7 @@ import ghidra.program.model.data.Structure;
 import ghidra.program.model.data.VoidDataType;
 import ghidra.program.model.listing.FunctionSignature;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
@@ -75,6 +76,8 @@ public class TypeLattice {
 
   private final List<Function<DataType, Optional<List<String>>>> less_than_relation_strategy;
 
+  private final Map<DataType, DerivedTypeVariable> memoized_types;
+
   public TypeLattice(
       Map<Tid, FunctionSignature> fixed_signatures,
       List<Function<DataType, Optional<List<String>>>> less_than_relation_strategy,
@@ -82,11 +85,10 @@ public class TypeLattice {
     this.fixed_signatures = fixed_signatures;
     this.less_than_relation_strategy = less_than_relation_strategy;
     this.shouldIgnoreVoidPointers = shouldIgnoreVoidPointers;
+    this.memoized_types = new HashMap<>();
   }
 
   private Optional<Retval> constraintsForReturn(Tid tid, DataType ty) {
-    System.out.println(ty);
-    System.out.println(TypeLattice.isVoidPointer(ty));
     if (this.shouldIgnoreVoidPointers && TypeLattice.isVoidPointer(ty)) {
       return Optional.empty();
     }
@@ -99,7 +101,7 @@ public class TypeLattice {
             .addFieldLabels(FieldLabel.newBuilder().setOutParam(0))
             .build();
 
-    var repr_for_ty = TypeLattice.representation_for_datatype(ty, tid);
+    var repr_for_ty = this.representation_for_datatype(ty, tid);
 
     var subty = SubtypingConstraint.newBuilder().setLhs(dtv).setRhs(repr_for_ty.first).build();
     var add_cons = AdditionalConstraint.newBuilder().setSubTy(subty).setTargetVariable(tid);
@@ -114,8 +116,6 @@ public class TypeLattice {
   }
 
   private Optional<Retval> constraintsForParam(int idx, Tid tid, DataType ty) {
-    System.out.println(ty);
-    System.out.println(TypeLattice.isVoidPointer(ty));
     if (this.shouldIgnoreVoidPointers && TypeLattice.isVoidPointer(ty)) {
       return Optional.empty();
     }
@@ -184,7 +184,7 @@ public class TypeLattice {
     return repr;
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_pointer(
+  private Pair<DerivedTypeVariable, Retval> representation_for_pointer(
       Pointer ptr, Tid affecting_tid) {
     var load_repr =
         TypeLattice.get_ptr_dtv_for_type(
@@ -192,7 +192,7 @@ public class TypeLattice {
     var store_repr =
         TypeLattice.get_ptr_dtv_for_type(ptr, constraints.Constraints.Pointer.POINTER_STORE);
 
-    var pointedToRes = TypeLattice.representation_for_datatype(ptr.getDataType(), affecting_tid);
+    var pointedToRes = this.representation_for_datatype(ptr.getDataType(), affecting_tid);
 
     var load_cons =
         SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(load_repr).build();
@@ -219,15 +219,16 @@ public class TypeLattice {
         data_type_to_derived_variable(ptr).build(), retval);
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_structure(
+  private Pair<DerivedTypeVariable, Retval> representation_for_structure(
       Structure struct, Tid affecting_tid) {
     var tot = new Retval();
-
+    var struct_base_dtv = TypeLattice.data_type_to_derived_variable(struct).build();
     for (var comp : struct.getComponents()) {
-      var repr_of_field = representation_for_datatype(comp.getDataType(), affecting_tid);
-
-      tot.merge(repr_of_field.second);
+      var repr_of_field =
+          this.representation_for_datatype_recursive(
+              comp.getDataType(), affecting_tid, struct, struct_base_dtv);
       var struct_var = TypeLattice.data_type_to_derived_variable(struct);
+      tot.merge(repr_of_field.second);
       var field_access =
           struct_var
               .addFieldLabels(
@@ -254,7 +255,7 @@ public class TypeLattice {
         TypeLattice.data_type_to_derived_variable(struct).build(), tot);
   }
 
-  private static Pair<DerivedTypeVariable, Retval> representation_for_datatype(
+  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_no_memo(
       DataType dt, Tid affecting_tid) {
     if (dt instanceof Pointer) {
       return representation_for_pointer((Pointer) dt, affecting_tid);
@@ -272,7 +273,29 @@ public class TypeLattice {
     }
   }
 
+  private Pair<DerivedTypeVariable, Retval> representation_for_datatype(
+      DataType dt, Tid affecting_tid) {
+
+    if (this.memoized_types.containsKey(dt)) {
+      return new Pair<DerivedTypeVariable, Retval>(this.memoized_types.get(dt), new Retval());
+    } else {
+      var res = this.representation_for_datatype_no_memo(dt, affecting_tid);
+      this.memoized_types.put(dt, res.first);
+      return res;
+    }
+  }
+
+  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_recursive(
+      DataType dt,
+      Tid affecting_tid,
+      DataType representing_insert,
+      DerivedTypeVariable to_insert_var) {
+    this.memoized_types.put(representing_insert, to_insert_var);
+    return this.representation_for_datatype(dt, affecting_tid);
+  }
+
   private Retval constraintsForSignature(Tid tid, FunctionSignature sig) {
+    System.out.println("Working on signature for: " + sig.getPrototypeString());
     Retval total = new Retval();
     int idx = 0;
     for (var arg : sig.getArguments()) {
@@ -349,7 +372,7 @@ public class TypeLattice {
     return Stream.concat(Stream.concat(bottom_cons, top_cons), generated_cons);
   }
 
-  OutputBuilder getOutputBuilder() {
+  public OutputBuilder getOutputBuilder() {
     var collected_res = this.collectSignatureConstraints();
 
     var constraints = collected_res.getConstraints();
