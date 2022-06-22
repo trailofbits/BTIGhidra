@@ -224,7 +224,9 @@ public class TypeLattice {
     var tot = new Retval();
     var struct_base_dtv = TypeLattice.data_type_to_derived_variable(struct).build();
     for (var comp : struct.getComponents()) {
-      var repr_of_field = this.representation_for_datatype_recursive(comp.getDataType(), affecting_tid, struct, struct_base_dtv);
+      var repr_of_field =
+          this.representation_for_datatype_recursive(
+              comp.getDataType(), affecting_tid, struct, struct_base_dtv);
       var struct_var = TypeLattice.data_type_to_derived_variable(struct);
       tot.merge(repr_of_field.second);
       var field_access =
@@ -253,7 +255,8 @@ public class TypeLattice {
         TypeLattice.data_type_to_derived_variable(struct).build(), tot);
   }
 
-  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_no_memo(DataType dt, Tid affecting_tid) {
+  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_no_memo(
+      DataType dt, Tid affecting_tid) {
     if (dt instanceof Pointer) {
       return representation_for_pointer((Pointer) dt, affecting_tid);
       // TODO(ian): maybe expand to unions.
@@ -270,12 +273,11 @@ public class TypeLattice {
     }
   }
 
-
   private Pair<DerivedTypeVariable, Retval> representation_for_datatype(
       DataType dt, Tid affecting_tid) {
 
     if (this.memoized_types.containsKey(dt)) {
-      return new Pair<DerivedTypeVariable, Retval>(this.memoized_types.get(dt) ,new Retval());
+      return new Pair<DerivedTypeVariable, Retval>(this.memoized_types.get(dt), new Retval());
     } else {
       var res = this.representation_for_datatype_no_memo(dt, affecting_tid);
       this.memoized_types.put(dt, res.first);
@@ -283,7 +285,11 @@ public class TypeLattice {
     }
   }
 
-  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_recursive(DataType dt, Tid affecting_tid, DataType representing_insert , DerivedTypeVariable to_insert_var) {
+  private Pair<DerivedTypeVariable, Retval> representation_for_datatype_recursive(
+      DataType dt,
+      Tid affecting_tid,
+      DataType representing_insert,
+      DerivedTypeVariable to_insert_var) {
     this.memoized_types.put(representing_insert, to_insert_var);
     return this.representation_for_datatype(dt, affecting_tid);
   }
