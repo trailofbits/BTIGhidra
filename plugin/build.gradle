@@ -214,6 +214,18 @@ tasks.withType(Test).configureEach {
     maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
 }
 
+// Ignore including some files in the zip distribution
+def git = grgit.open(currentDir: project.projectDir.parent)
+def dirty = git.status().clean ? "" : "_dirty"
+def short_commit = "_" + git.head().abbreviatedId
+buildExtension {
+    exclude '.idea'
+    exclude 'gradle*'
+    exclude 'lib/os'
+    archiveBaseName = "${buildExtension.archiveBaseName.get()}${short_commit}${dirty}"
+}
+buildExtension.dependsOn copyRustBTIDependencies, copyCWECheckerScripts
+
 // The following installation helpers were copied from
 // https://github.com/cmu-sei/kaiju/blob/c00a351aa4332e8b6e2be94f6fe52418f8946b11/build.gradle
 task uninstallPreviousBTI {
@@ -276,18 +288,6 @@ task install() {
     }
 }
 // End copy
-
-// Ignore including some files in the zip distribution
-def git = grgit.open(currentDir: project.projectDir.parent)
-def dirty = git.status().clean ? "" : "_dirty"
-def short_commit = "_" + git.head().abbreviatedId
-buildExtension {
-    exclude '.idea'
-    exclude 'gradle*'
-    exclude 'lib/os'
-    baseName "${buildExtension.archiveBaseName.get()}${short_commit}${dirty}"
-}
-buildExtension.dependsOn copyRustBTIDependencies, copyCWECheckerScripts
 
 protobuf {
     protoc {
