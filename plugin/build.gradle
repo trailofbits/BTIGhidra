@@ -215,9 +215,14 @@ tasks.withType(Test).configureEach {
 }
 
 // Ignore including some files in the zip distribution
-def git = grgit.open(currentDir: project.projectDir.parent)
-def dirty = git.status().clean ? "" : "_dirty"
-def short_commit = "_" + git.head().abbreviatedId
+def git = null
+def dirty = ""
+def short_commit = "_unknown"
+if(grgit != null) {
+    git = grgit.open(currentDir: project.projectDir.parent)
+    dirty = git.status().clean ? "" : "_dirty"
+    short_commit = "_" + git.head().abbreviatedId
+}
 buildExtension {
     exclude '.idea'
     exclude 'gradle*'
