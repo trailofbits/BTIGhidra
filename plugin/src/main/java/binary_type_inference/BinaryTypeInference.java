@@ -11,6 +11,7 @@ import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.DefaultDataType;
+import ghidra.program.model.data.IntegerDataType;
 import ghidra.program.model.data.Pointer;
 import ghidra.program.model.data.Undefined;
 import ghidra.program.model.listing.FunctionSignature;
@@ -59,8 +60,8 @@ public class BinaryTypeInference {
     this.preserved = preserved;
 
     if (should_save_output) {
-      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform but seems like ghidra
-      // sets this to a different tmp dir that is deleted.
+      // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform
+      // but seems like ghidra sets this to a different tmp dir that is deleted.
       this.workingDir = Paths.get("/tmp");
     } else {
       this.workingDir = Files.createTempDir().toPath();
@@ -201,8 +202,9 @@ public class BinaryTypeInference {
         var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
         var maybe_data = mapping.getDataTypeForTid(symb_tid);
         if (maybe_data.isPresent()) {
-          // Since we are setting the type of the data itself we have already done one deref so we
-          // need to deref this datatype when we apply it to the address
+          // Since we are setting the type of the data itself we have already
+          // done one deref so we need to deref this datatype when we apply it
+          // to the address
           if (maybe_data.get() instanceof Pointer) {
             var ptr = (Pointer) maybe_data.get();
             DataUtilities.createData(
@@ -220,9 +222,9 @@ public class BinaryTypeInference {
 
   public void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException, CodeUnitInsertionException {
+    var dtm = this.prog.getDataTypeManager();
     var unknown_ty_builder =
         new IUnknownTypeBuilder() {
-
           @Override
           public DataType getDefaultUnkownType() {
             // TODO Auto-generated method stub
@@ -233,6 +235,12 @@ public class BinaryTypeInference {
           public DataType getUnknownDataTypeWithSize(int new_size) {
             // TODO Auto-generated method stub
             return Undefined.getUndefinedDataType(new_size);
+          }
+
+          @Override
+          public DataType getWeakestIntegerTypeWithSize(int new_size) {
+            // TODO Auto-generated method stub
+            return IntegerDataType.getUnsignedDataType(new_size, dtm);
           }
         };
     var ty_lib =
