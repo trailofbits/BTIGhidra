@@ -32,8 +32,8 @@
 plugins {
     id 'eclipse'
     id 'idea'
-    id "com.diffplug.spotless" version "6.1.2"
-    id "com.google.protobuf" version "0.8.18"
+    id "com.diffplug.spotless" version "6.11.0"
+    id "com.google.protobuf" version "0.9.1"
     // Version 5.0.0 has issues with including in multiple projects
     id "org.ajoberstar.grgit" version "4.1.1"
 }
@@ -63,13 +63,15 @@ repositories {
     mavenCentral()
 }
 
+// This version is included in Ghidra distribution
+// path/to/ghidra_<version>_PUBLIC$ find . -name "*protobuf*"
 def protobufVersion = '3.17.3'
 
 // Our dependencies need to be stated first for classpath
 dependencies {
     testImplementation 'junit:junit:4.13.2'
-    testImplementation 'org.assertj:assertj-core:3.22.0'
-    testImplementation 'org.mockito:mockito-inline:4.2.0'
+    testImplementation 'org.assertj:assertj-core:3.23.1'
+    testImplementation 'org.mockito:mockito-inline:4.8.0'
 
     // Needed for finding platform native executables in 'os/{platform}' directories
     testRuntimeOnly files("lib")
@@ -139,6 +141,7 @@ sourceSets {
         java {
             srcDirs 'src/main/java'
             srcDirs 'build/generated/source/proto/main/java/'
+            srcDirs 'ghidra_scripts'
         }
 
         proto {
@@ -328,7 +331,7 @@ spotless {
         )
         removeUnusedImports()
 
-        googleJavaFormat('1.13.0')
+        googleJavaFormat('1.15.0')
 
         // licenseHeader '/* (C) $YEAR */' // or licenseHeaderFile
     }
