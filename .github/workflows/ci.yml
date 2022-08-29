@@ -61,9 +61,9 @@ jobs:
 
       - name: 'Setup Ghidra'
         run: |
-          wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.1.4_build/ghidra_10.1.4_PUBLIC_20220519.zip --output-document=ghidra.zip
+          wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.1.5_build/ghidra_10.1.5_PUBLIC_20220726.zip --output-document=ghidra.zip
           unzip ghidra.zip
-          echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.1.4_PUBLIC" >> $GITHUB_ENV
+          echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.1.5_PUBLIC" >> $GITHUB_ENV
 
       - name: 'Lint, Build, and Test BTI'
         run: |
