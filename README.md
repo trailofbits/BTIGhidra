@@ -72,3 +72,16 @@ just test
 ## Usage Notes:
 
 BTIGhidra currently relies on Ghidra's notions of parameters to bind physical locations to function parameters. If the decompiler has function signatures that are correct, you can run the Decompiler Parameter ID analysis to apply the decompile signatures to the ghidra database.
+
+## Acknowledgments
+
+The underlying type inference algorithm used in this work was primarily inspired by and derives significant direction from the following paper:
+```
+M. Noonan, A. Loginov, and D. Cok, "Polymorphic Type Inference for Machine Code," arXiv:1603.05495 [cs], Mar. 2016, Accessed: Nov. 08, 2021. [Online]. Available: http://arxiv.org/abs/1603.05495
+```
+
+The methods described in the paper are patented under process patent US10942718B2 held by GrammaTech, Inc. This work was developed with permission from GrammaTech pursuant to the GPLv3 terms of their own implementation: https://github.com/GrammaTech/retypd.
+
+Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of GrammaTech, Inc.
+
+We would also like to thank the team at FKIE-CAD behind [CWE Checker](https://github.com/fkie-cad/cwe_checker). Their static analysis platform over Ghidra PCode provided an excellent base set of capabilities in our analysis.
