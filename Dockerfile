@@ -5,8 +5,8 @@
 FROM ubuntu:20.04
 
 RUN export DEBIAN_FRONTEND=noninteractive && \
-  apt-get update && apt-get upgrade -y && \
-  apt-get install -y build-essential curl ca-certificates openjdk-11-jdk unzip
+    apt-get update && apt-get upgrade -y && \
+    apt-get install -y build-essential curl ca-certificates openjdk-11-jdk unzip
 
 # Switch to non-root user:
 RUN useradd --create-home tob
@@ -28,7 +28,7 @@ RUN mkdir -p "${HOME}/.local/bin" && \
     curl -L https://github.com/casey/just/releases/download/1.1.3/just-1.1.3-x86_64-unknown-linux-musl.tar.gz | tar -xz -C "${HOME}/.local/bin"
 
 # Ghidra
-RUN curl -L https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.1.4_build/ghidra_10.1.4_PUBLIC_20220519.zip -o ghidra.zip && \
+RUN curl -L https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.1.5_build/ghidra_10.1.5_PUBLIC_20220726.zip -o ghidra.zip && \
     unzip ghidra.zip -d "${HOME}/.local/opt" && \
     rm ghidra.zip
-ENV GHIDRA_INSTALL_DIR="${HOME}/.local/opt/ghidra_10.1.4_PUBLIC"
+ENV GHIDRA_INSTALL_DIR="${HOME}/.local/opt/ghidra_10.1.5_PUBLIC"
