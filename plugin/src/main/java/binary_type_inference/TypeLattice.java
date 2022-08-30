@@ -164,7 +164,7 @@ public class TypeLattice {
   private static Optional<Field> FieldMember(int offset, DataType dt) {
     var sz = dt.getLength();
     if (sz > 0) {
-      return Optional.of(Field.newBuilder().setByteOffset(sz).setBitSize(sz * 8).build());
+      return Optional.of(Field.newBuilder().setByteOffset(0).setBitSize(sz * 8).build());
     } else {
       return Optional.empty();
     }

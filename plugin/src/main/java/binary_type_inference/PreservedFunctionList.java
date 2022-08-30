@@ -23,15 +23,14 @@ public class PreservedFunctionList {
 
   private final Set<Function> preservedFunctions;
 
-  public static PreservedFunctionList
-  createFromExternSection(Program prog, boolean keepAllUserDefinedTypes) {
+  public static PreservedFunctionList createFromExternSection(
+      Program prog, boolean keepAllUserDefinedTypes) {
     var pres = new HashSet<Function>();
 
     for (var func : prog.getFunctionManager().getExternalFunctions()) {
       if (func.getSignatureSource() != SourceType.USER_DEFINED) {
         Arrays.stream(func.getFunctionThunkAddresses())
-            .map(
-                (Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
+            .map((Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
             .filter(Objects::nonNull)
             .forEach((Function thunk) -> pres.add(thunk));
         pres.add(func);
@@ -53,8 +52,7 @@ public class PreservedFunctionList {
     this.preservedFunctions = preservedFunctions;
   }
 
-  private static Optional<Function> parseLineToFunction(Program prog,
-                                                        String line) {
+  private static Optional<Function> parseLineToFunction(Program prog, String line) {
     var addr = prog.getAddressFactory().getAddress(line);
     var func = prog.getFunctionManager().getFunctionAt(addr);
     if (func != null) {
@@ -64,18 +62,19 @@ public class PreservedFunctionList {
     }
   }
 
-  public static Optional<PreservedFunctionList>
-  parseTargetFunctionListFile(Program prog, File file_path) {
+  public static Optional<PreservedFunctionList> parseTargetFunctionListFile(
+      Program prog, File file_path) {
     try {
       var fl = new FileReader(file_path);
       var lines = new BufferedReader(fl).lines();
-      var res = Optional.of(new PreservedFunctionList(
-          lines
-              .map((String line)
-                       -> PreservedFunctionList.parseLineToFunction(prog, line))
-              .filter((var opt) -> opt.isPresent())
-              .map((var opt) -> opt.get())
-              .collect(Collectors.toSet())));
+      var res =
+          Optional.of(
+              new PreservedFunctionList(
+                  lines
+                      .map((String line) -> PreservedFunctionList.parseLineToFunction(prog, line))
+                      .filter((var opt) -> opt.isPresent())
+                      .map((var opt) -> opt.get())
+                      .collect(Collectors.toSet())));
       fl.close();
       return res;
     } catch (IOException e) {
@@ -97,11 +96,12 @@ public class PreservedFunctionList {
 
   public Map<Tid, FunctionSignature> getTidMap() {
     return this.preservedFunctions.stream()
-        .map((Function func) -> {
-          var sig = func.getSignature();
-          var tid = PreservedFunctionList.functionToTid(func);
-          return new Pair<Tid, FunctionSignature>(tid, sig);
-        })
+        .map(
+            (Function func) -> {
+              var sig = func.getSignature();
+              var tid = PreservedFunctionList.functionToTid(func);
+              return new Pair<Tid, FunctionSignature>(tid, sig);
+            })
         .collect(Collectors.toMap((var pr) -> pr.first, (var pr) -> pr.second));
   }
 }
