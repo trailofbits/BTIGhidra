@@ -103,7 +103,7 @@ public class TypeLattice {
 
     var repr_for_ty = this.representation_for_datatype(ty, tid);
 
-    var subty = SubtypingConstraint.newBuilder().setLhs(dtv).setRhs(repr_for_ty.first).build();
+    var subty = SubtypingConstraint.newBuilder().setLhs(repr_for_ty.first).setRhs(dtv).build();
     var add_cons = AdditionalConstraint.newBuilder().setSubTy(subty).setTargetVariable(tid);
 
     repr_for_ty.second.addSubtyCons(add_cons.build());
@@ -124,8 +124,8 @@ public class TypeLattice {
 
     var new_cons =
         SubtypingConstraint.newBuilder()
-            .setLhs(repr.first)
-            .setRhs(dtv_for_param_of_tid(idx, tid))
+            .setLhs(dtv_for_param_of_tid(idx, tid))
+            .setRhs(repr.first)
             .build();
 
     var add_cons = AdditionalConstraint.newBuilder().setSubTy(new_cons).setTargetVariable(tid);
