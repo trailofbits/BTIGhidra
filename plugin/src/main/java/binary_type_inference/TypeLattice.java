@@ -195,9 +195,9 @@ public class TypeLattice {
     var pointedToRes = this.representation_for_datatype(ptr.getDataType(), affecting_tid);
 
     var load_cons =
-        SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(load_repr).build();
+        SubtypingConstraint.newBuilder().setLhs(load_repr).setRhs(pointedToRes.first).build();
     var store_cons =
-        SubtypingConstraint.newBuilder().setLhs(store_repr).setRhs(pointedToRes.first).build();
+        SubtypingConstraint.newBuilder().setLhs(pointedToRes.first).setRhs(store_repr).build();
 
     var retval = pointedToRes.second;
 

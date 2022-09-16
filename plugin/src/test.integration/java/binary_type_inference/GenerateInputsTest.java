@@ -70,7 +70,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
                 specPair.getCompilerSpec());
     env.getGhidraProject().analyze(program, false);
 
-    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, false);
     var const_types = inf.produceArtifacts();
@@ -93,6 +93,36 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
     var target_sig = hopefully_fixed.getSignature();
 
     System.out.println(target_sig);
+  }
+
+  @Test
+  public void testOldMoooslPropogatePointerTypeFromKeyHash() throws Exception {
+    LanguageCompilerSpecPair specPair = new LanguageCompilerSpecPair("x86:LE:64:default", "gcc");
+    program =
+        env.getGhidraProject()
+            .importProgram(
+                new File(
+                    Objects.requireNonNull(
+                            GenerateInputsTest.class
+                                .getClassLoader()
+                                .getResource("binaries/mooosl"))
+                        .getFile()),
+                specPair.getLanguage(),
+                specPair.getCompilerSpec());
+
+    env.getGhidraProject().getAnalysisOptions(program).setBoolean("Decompiler Parameter ID", true);
+    env.getGhidraProject().analyze(program, false);
+
+    AutoAnalysisManager analysisMgr = AutoAnalysisManager.getAnalysisManager(program);
+
+    analysisMgr.waitForAnalysis(null, TaskMonitor.DUMMY);
+
+    System.out.println("Done with analysis");
+
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
+
+    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true);
+    var const_types = inf.produceArtifacts();
   }
 
   @Test
@@ -121,7 +151,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     System.out.println("Done with analysis");
 
-    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program);
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true);
     var const_types = inf.produceArtifacts();
@@ -146,8 +176,8 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
         hopefully_fixed_datatype instanceof Pointer);
 
     var ptr = (Pointer) hopefully_fixed_datatype;
-    // Since this is the actual data weve already done one dereference so now we expect to
-    // dereference and find the struct itself
+    // Since this is the actual data weve already done one dereference so now we
+    // expect to dereference and find the struct itself
 
     assertTrue("Gv should deref to a struct", ptr.getDataType() instanceof Structure);
   }
