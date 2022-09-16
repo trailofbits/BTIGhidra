@@ -5,12 +5,15 @@ import static org.junit.Assert.assertTrue;
 
 import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
 import ghidra.program.model.data.AbstractIntegerDataType;
+import ghidra.program.model.data.ByteDataType;
 import ghidra.program.model.data.DataUtilities;
 import ghidra.program.model.data.Pointer;
+import ghidra.program.model.data.PointerDataType;
 import ghidra.program.model.data.Structure;
 import ghidra.program.model.lang.LanguageCompilerSpecPair;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
+import ghidra.program.model.symbol.SourceType;
 import ghidra.test.AbstractGhidraHeadlessIntegrationTest;
 import ghidra.test.TestEnv;
 import ghidra.util.task.TaskMonitor;
@@ -119,10 +122,41 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     System.out.println("Done with analysis");
 
+    // Addr of key hash
+    var key_hash_address = program.getAddressFactory().getAddress("0x001013db");
+
+    // Get keyhash function
+    var key_hash_func = program.getFunctionManager().getFunctionAt(key_hash_address);
+
+    Objects.requireNonNull(key_hash_func);
+
+    var byte_type = new ByteDataType();
+    var byte_ptr = new PointerDataType(byte_type);
+
+    key_hash_func.getParameter(0).setDataType(byte_ptr, SourceType.USER_DEFINED);
+
+    key_hash_func.setSignatureSource(SourceType.USER_DEFINED);
+
     PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true);
     var const_types = inf.produceArtifacts();
+
+    inf.getCtypes();
+
+    inf.applyCtype(const_types);
+
+    // Addr of lookup
+    var lookup_addr = program.getAddressFactory().getAddress("0x001014fb");
+
+    // Lookup func
+    var lookup_func = program.getFunctionManager().getFunctionAt(lookup_addr);
+
+    var datatype = lookup_func.getParameter(0).getDataType();
+
+    assertTrue(
+        "The in parameter to lookup is directly passed to key hash so the first parameter should learn that it is a pointer",
+        datatype instanceof Pointer);
   }
 
   @Test
