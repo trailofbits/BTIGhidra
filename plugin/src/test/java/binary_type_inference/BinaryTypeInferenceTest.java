@@ -17,6 +17,7 @@ public class BinaryTypeInferenceTest {
   private static final Path projectDir = Path.of(System.getProperty("user.dir"));
   private static final Path testDataDir =
       projectDir.getParent().resolve("binary_type_inference").resolve("test_data");
+  private static final Path listTestDataDir = testDataDir.resolve("list_test");
 
   @Before
   public void setUp() throws IOException {
@@ -45,8 +46,8 @@ public class BinaryTypeInferenceTest {
             Path.of(
                 Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME)
                     .getAbsolutePath()),
-            testDataDir.resolve("list_test.o"),
-            testDataDir.resolve("list_test.json"),
+            listTestDataDir.resolve("list_test.so"),
+            listTestDataDir.resolve("ir.json"),
             testDataDir.resolve("list_test_lattice.json"),
             testDataDir.resolve("list_additional_constraints.pb"),
             testDataDir.resolve("list_interesting_tids.pb"),
