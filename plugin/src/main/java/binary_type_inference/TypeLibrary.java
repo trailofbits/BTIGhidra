@@ -27,9 +27,11 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Optional;
+import java.util.Set;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.NotImplementedException;
@@ -40,7 +42,11 @@ public class TypeLibrary {
   private final Map<String, DataType> type_constants;
 
   private final Map<Integer, DataType> node_index_to_type_memoization;
-  private final DataTypeManager dtm;
+
+  // We keep track of visited node indeces that we could not memoize since they
+  // were not composites, if we reach a loop thorugh a non memoized type we need
+  // to fail otherwise we will diverge.
+  private final Set<Integer> visited_node_indeces;
 
   public static class Types {
     private final Map<Tid, DataType> mapping;
@@ -173,9 +179,9 @@ public class TypeLibrary {
     // TODO(ian): this assumes we never get an alias to ourselves
     private DataType buildAlias(Alias to) {
       if (!this.root_stub.isPresent()) {
-        return this.ty_lib.build_node_type(to.getToType());
+        return this.ty_lib.rec_build_node_type_without_root(to.getToType(), this.targetIndex);
       } else {
-        return this.ty_lib.rec_build_node_type(
+        return this.ty_lib.rec_build_node_type_with_root(
             to.getToType(), this.targetIndex, this.root_stub.get());
       }
     }
@@ -301,7 +307,7 @@ public class TypeLibrary {
     this.type_constants = type_constants;
     this.unknownType = unknownType;
     this.node_index_to_type_memoization = new HashMap<>();
-    this.dtm = dtm;
+    this.visited_node_indeces = new HashSet<>();
   }
 
   private DataType build_ctype(int node_index) {
@@ -314,15 +320,24 @@ public class TypeLibrary {
 
   // A recursive call to build node type. A builder should never call
   // build_node_type, or else risk an infinite loop
-  private DataType rec_build_node_type(int node_index, int prev_index, DataType prev) {
+  private DataType rec_build_node_type_with_root(int node_index, int prev_index, DataType prev) {
     this.node_index_to_type_memoization.put(prev_index, prev);
     return this.build_node_type(node_index);
   }
 
+  private DataType rec_build_node_type_without_root(int node_index, int prev_index) {
+    this.visited_node_indeces.add(prev_index);
+    return this.build_node_type(node_index);
+  }
+
   private DataType build_node_type(int node_index) {
-    System.out.println("Building node:" + node_index);
     if (this.node_index_to_type_memoization.containsKey(node_index)) {
       return this.node_index_to_type_memoization.get(node_index);
+    }
+
+    // Prevent visiting recursive type indefinitely
+    if (this.visited_node_indeces.contains(node_index)) {
+      return this.unknownType.getDefaultUnkownType();
     }
 
     var res = this.build_ctype(node_index);
