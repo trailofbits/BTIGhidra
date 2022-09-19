@@ -53,11 +53,12 @@ To prove that the inference algorithm is actually doing something, feel free to 
 To save some time here is a table of function address to function name.
 
 | Function Address | Function Name |
-|----------------- | ------------- |
+| ---------------- | ------------- |
 | FUN_001015a4     | store         |
 | FUN_00101672     | query         |
 | FUN_0010171b     | delete        |
-| FUN_001014fb     | lookup        |    
+| FUN_001014fb     | lookup        |
+| FUN_00101436     | value_dump    |
 
 For now we will focus on the lookup function.
 
@@ -172,6 +173,28 @@ undefined FUN_00101672(void)
   return 0;
 }
 ```
+
+### Refining the Structure with a Known Function Signature
+
+BTIGhidra can preserve and propogate user defined type signatures to improve its output. Note in the above structure definition we have not observed primitive types for the recovered fields. 
+
+We are going to insert a signature for `value_dump` to refine two fields of the target structure.
+
+Looking at the source for the challenge the signature of `value_dump` is: `void value_dump(const uint8_t *data, size_t size)` since Ghidra doesn't apply constant pointers we will apply the signature `void value_dump(uint8_t *data, size_t size)` to `FUN_00101436`. Open the function `FUN_00101436` and right click the function name and click `Edit Function Signature`.
+
+![value_dump edit signature](resources/edit_signature.png)
+
+Click ok and select the types from the generic clib. 
+
+Now rerun type analysis by opening the auto analysis menu, checking `Type Inference` if it is not already checked and then clicking `Analyze`.
+
+After type analysis has finished go back to `FUN_001014fb` and open the data type editor returned from lookup. Now you should see that the primitive types recovered as shown below:
+
+![target structure data type with size_t and uint8_t* recovered](resources/struct_with_prims.png)
+
+The value_dump callsite's type effect in query is succesfully propogated down to the usage of the global in lookup.
+
+
 
 ### A Note on Global Variables
 
