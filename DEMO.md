@@ -1,6 +1,6 @@
 # Running the Mooosl Demo
 
-This demo walks through running the analysis pass via the UI on the mooosl CTF challenge.
+This demo walks through running the analysis pass via the UI on the [mooosl CTF challenge](https://github.com/o-o-overflow/dc2021q-mooosl).
 The goal is to automatically infer and apply the linked list type to the global variable and functions that operate over it. These directions assume the user already has BTIGhidra installed in a running Ghidra instance. For installation directions please refer to the [README](README.md)
 
 
