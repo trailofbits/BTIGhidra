@@ -80,7 +80,7 @@ The underlying type inference algorithm used in this work was primarily inspired
 M. Noonan, A. Loginov, and D. Cok, "Polymorphic Type Inference for Machine Code," arXiv:1603.05495 [cs], Mar. 2016, Accessed: Nov. 08, 2021. [Online]. Available: http://arxiv.org/abs/1603.05495
 ```
 
-The methods described in the paper are patented under process patent US10942718B2 held by GrammaTech, Inc. This work was developed with permission from GrammaTech pursuant to the GPLv3 terms of their own implementation: https://github.com/GrammaTech/retypd.
+The methods described in the paper are patented under process patent [US10423397B2](https://patentcenter.uspto.gov/applications/15393463) held by GrammaTech, Inc. This work was developed with permission from GrammaTech pursuant to the GPLv3 terms of their own implementation: https://github.com/GrammaTech/retypd.
 
 Any opinions, findings and conclusions or recommendations expressed in this material are those of the author(s) and do not necessarily reflect the views of GrammaTech, Inc.
 
