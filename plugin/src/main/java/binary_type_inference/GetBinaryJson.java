@@ -73,6 +73,7 @@ public class GetBinaryJson {
               + " : "
               + exc.getMessage();
       Msg.error(this, logErrorMsg, exc);
+      throw exc;
     }
   }
 }
