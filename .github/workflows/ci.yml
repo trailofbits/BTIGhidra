@@ -16,7 +16,7 @@ jobs:
       - name: 'Install tools'
         run: |
           # just command runner https://github.com/casey/just
-          brew install just
+          cargo install just
           # Check markdown links
           sudo npm install -g markdown-link-check
 
