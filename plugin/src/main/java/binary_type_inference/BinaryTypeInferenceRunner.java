@@ -5,6 +5,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
@@ -101,17 +102,18 @@ public class BinaryTypeInferenceRunner {
     // Fixes buffering by redirecting output to null
 
     List<String> init_command =
-        Arrays.asList(
-            typeInferenceTool.toAbsolutePath().toString(),
-            programLocation.toAbsolutePath().toString(),
-            irLocation.toAbsolutePath().toString(),
-            typeLatticeLocation.toAbsolutePath().toString(),
-            additionalConstraintsLocation.toAbsolutePath().toString(),
-            this.interesting_vars_file.toAbsolutePath().toString(),
-            "--out",
-            this.out_protobuf.toString(),
-            "--debug_out_dir",
-            this.working_dir.toAbsolutePath().toString());
+        new ArrayList<>(
+            Arrays.asList(
+                typeInferenceTool.toAbsolutePath().toString(),
+                programLocation.toAbsolutePath().toString(),
+                irLocation.toAbsolutePath().toString(),
+                typeLatticeLocation.toAbsolutePath().toString(),
+                additionalConstraintsLocation.toAbsolutePath().toString(),
+                this.interesting_vars_file.toAbsolutePath().toString(),
+                "--out",
+                this.out_protobuf.toString(),
+                "--debug_out_dir",
+                this.working_dir.toAbsolutePath().toString()));
 
     if (this.use_aggressive_shared_returns) {
       init_command.add("--use_aggressive_shared_returns");
