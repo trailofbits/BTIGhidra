@@ -18,11 +18,13 @@ class TypeAnalyzerOptions {
   public Optional<File> preserved_functions_file;
   public boolean should_save_output;
   public boolean should_preserve_user_types;
+  public boolean use_aggressive_shared_returns;
 
   public TypeAnalyzerOptions() {
     this.preserved_functions_file = Optional.empty();
     this.should_save_output = false;
     this.should_preserve_user_types = true;
+    this.use_aggressive_shared_returns = false;
   }
 
   void setShouldSaveOutput(boolean val) {
@@ -77,6 +79,11 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     } else {
       this.opts.clearPreservedFunctionsFile();
     }
+
+    this.opts.use_aggressive_shared_returns =
+        options.getBoolean(
+            "Use aggressive shared returns (EXPERIMENTAL)",
+            this.opts.use_aggressive_shared_returns);
   }
 
   @Override
@@ -102,6 +109,12 @@ public class TypeAnalyzer extends AbstractAnalyzer {
         this.opts.should_preserve_user_types,
         null,
         "If true, will add user defined function signatures to the assumed types.");
+
+    options.registerOption(
+        "Use aggressive shared returns (EXPERIMENTAL)",
+        this.opts.use_aggressive_shared_returns,
+        null,
+        "Use VSA to try to identify and fixup shared returns... currently high false positive rate");
   }
 
   @Override
@@ -129,7 +142,12 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
     var bti =
         new BinaryTypeInference(
-            program, preserved, this.extra_script_dir_paths, log, this.opts.should_save_output);
+            program,
+            preserved,
+            this.extra_script_dir_paths,
+            log,
+            this.opts.should_save_output,
+            this.opts.use_aggressive_shared_returns);
 
     try {
       bti.run();

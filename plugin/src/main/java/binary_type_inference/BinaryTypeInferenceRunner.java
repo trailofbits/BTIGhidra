@@ -5,6 +5,8 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 import org.apache.commons.vfs2.FileNotFoundException;
 
@@ -21,6 +23,7 @@ public class BinaryTypeInferenceRunner {
   private final Path interesting_vars_file;
   private final Path out_protobuf;
   private final Path working_dir;
+  private boolean use_aggressive_shared_returns;
   private CTypeMapping ct;
 
   private Optional<TypeInferenceResult> lastResult = Optional.empty();
@@ -53,6 +56,31 @@ public class BinaryTypeInferenceRunner {
     this.interesting_vars_file = interesting_vars_file;
     this.out_protobuf = out_protobuf;
     this.working_dir = working_dir;
+    this.use_aggressive_shared_returns = false;
+  }
+
+  public BinaryTypeInferenceRunner(
+      /* Program program, */
+      Path typeInferenceToolLocation,
+      Path programLocation,
+      Path irLocation,
+      Path typeLatticeLocation,
+      Path additionalConstraintsLocation,
+      Path interesting_vars_file,
+      Path out_protobuf,
+      Path working_dir,
+      boolean use_aggressive_shared_returns) {
+    // this.program = program;
+    this(
+        typeInferenceToolLocation,
+        programLocation,
+        irLocation,
+        typeLatticeLocation,
+        additionalConstraintsLocation,
+        interesting_vars_file,
+        out_protobuf,
+        working_dir);
+    this.use_aggressive_shared_returns = use_aggressive_shared_returns;
   }
 
   public Optional<TypeInferenceResult> getLastResult() {
@@ -71,18 +99,26 @@ public class BinaryTypeInferenceRunner {
   public TypeInferenceResult inferTypes() throws IOException {
     // Call binary type inference tool with arguments
     // Fixes buffering by redirecting output to null
+
+    List<String> init_command =
+        Arrays.asList(
+            typeInferenceTool.toAbsolutePath().toString(),
+            programLocation.toAbsolutePath().toString(),
+            irLocation.toAbsolutePath().toString(),
+            typeLatticeLocation.toAbsolutePath().toString(),
+            additionalConstraintsLocation.toAbsolutePath().toString(),
+            this.interesting_vars_file.toAbsolutePath().toString(),
+            "--out",
+            this.out_protobuf.toString(),
+            "--debug_out_dir",
+            this.working_dir.toAbsolutePath().toString());
+
+    if (this.use_aggressive_shared_returns) {
+      init_command.add("--use_aggressive_shared_returns");
+    }
+
     ProcessBuilder bldr =
-        new ProcessBuilder(
-                typeInferenceTool.toAbsolutePath().toString(),
-                programLocation.toAbsolutePath().toString(),
-                irLocation.toAbsolutePath().toString(),
-                typeLatticeLocation.toAbsolutePath().toString(),
-                additionalConstraintsLocation.toAbsolutePath().toString(),
-                this.interesting_vars_file.toAbsolutePath().toString(),
-                "--out",
-                this.out_protobuf.toString(),
-                "--debug_out_dir",
-                this.working_dir.toAbsolutePath().toString())
+        new ProcessBuilder(init_command)
             .redirectOutput(new File("/dev/null"))
             .redirectError(new File("/dev/null"));
 
