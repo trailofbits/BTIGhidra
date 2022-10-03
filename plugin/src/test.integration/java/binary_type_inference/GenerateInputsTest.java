@@ -244,7 +244,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     PreservedFunctionList pl = new PreservedFunctionList(pres);
 
-    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, false);
+    var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true);
     var const_types = inf.produceArtifacts();
 
     assertTrue("lattice file exists", inf.getLatticeJsonPath().toFile().exists());
