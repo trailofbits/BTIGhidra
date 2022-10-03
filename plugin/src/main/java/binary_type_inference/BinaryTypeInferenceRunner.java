@@ -86,6 +86,8 @@ public class BinaryTypeInferenceRunner {
             .redirectOutput(new File("/dev/null"))
             .redirectError(new File("/dev/null"));
 
+    System.out.println(bldr.command());
+
     var bti = bldr.start();
 
     var ret = new TypeInferenceResult(bti);
