@@ -48,16 +48,19 @@ public class BinaryTypeInference {
   private final Path workingDir;
   private final List<String> extra_script_dirs;
   private final MessageLog log;
+  private final boolean use_aggressive_shared_returns;
 
   public BinaryTypeInference(
       Program prog,
       PreservedFunctionList preserved,
       List<String> extra_script_dirs,
       MessageLog log,
-      boolean should_save_output) {
+      boolean should_save_output,
+      boolean use_aggressive_shared_returns) {
     this.log = log;
     this.prog = prog;
     this.preserved = preserved;
+    this.use_aggressive_shared_returns = use_aggressive_shared_returns;
 
     if (should_save_output) {
       // TODO(Ian): wish we could use java.io.tmpdir here to be cross platform
@@ -155,7 +158,8 @@ public class BinaryTypeInference {
             this.getAdditionalConstraintsPath(),
             this.getInterestingTidsPath(),
             this.getCtypesOutPath(),
-            this.workingDir);
+            this.workingDir,
+            this.use_aggressive_shared_returns);
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
