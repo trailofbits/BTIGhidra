@@ -56,19 +56,31 @@ public class BinaryTypeInference {
   private final boolean use_aggressive_shared_returns;
   private Optional<Set<Function>> entry_point_functions;
 
-  public BinaryTypeInference(Program prog, PreservedFunctionList preserved,
-                             List<String> extra_script_dirs, MessageLog log,
-                             boolean should_save_output,
-                             boolean use_aggressive_shared_returns) {
-    this(prog, preserved, extra_script_dirs, log, should_save_output,
-         use_aggressive_shared_returns, Optional.empty());
+  public BinaryTypeInference(
+      Program prog,
+      PreservedFunctionList preserved,
+      List<String> extra_script_dirs,
+      MessageLog log,
+      boolean should_save_output,
+      boolean use_aggressive_shared_returns) {
+    this(
+        prog,
+        preserved,
+        extra_script_dirs,
+        log,
+        should_save_output,
+        use_aggressive_shared_returns,
+        Optional.empty());
   }
 
-  public BinaryTypeInference(Program prog, PreservedFunctionList preserved,
-                             List<String> extra_script_dirs, MessageLog log,
-                             boolean should_save_output,
-                             boolean use_aggressive_shared_returns,
-                             Optional<Set<Function>> entry_point_functions) {
+  public BinaryTypeInference(
+      Program prog,
+      PreservedFunctionList preserved,
+      List<String> extra_script_dirs,
+      MessageLog log,
+      boolean should_save_output,
+      boolean use_aggressive_shared_returns,
+      Optional<Set<Function>> entry_point_functions) {
     this.entry_point_functions = entry_point_functions;
     this.log = log;
     this.prog = prog;
@@ -105,13 +117,11 @@ public class BinaryTypeInference {
       if (!res.contains(curr)) {
         res.add(curr);
         for (var f : this.entry_point_functions.get()) {
-          for (var insn :
-               this.prog.getListing().getInstructions(f.getBody(), true)) {
+          for (var insn : this.prog.getListing().getInstructions(f.getBody(), true)) {
             for (var ref : insn.getReferencesFrom()) {
               if (ref.getReferenceType().isCall()) {
                 var canidate_func =
-                    this.prog.getFunctionManager().getFunctionAt(
-                        ref.getToAddress());
+                    this.prog.getFunctionManager().getFunctionAt(ref.getToAddress());
                 if (Objects.nonNull(canidate_func)) {
                   wlist.add(canidate_func);
                 }
@@ -127,8 +137,7 @@ public class BinaryTypeInference {
 
   private Path getTypeInferenceToolPath() throws OSFileNotFoundException {
     return Path.of(
-        Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME)
-            .getAbsolutePath());
+        Application.getOSFile(BinaryTypeInferenceRunner.DEFAULT_TOOL_NAME).getAbsolutePath());
   }
 
   public Path getBinaryPath() {
@@ -139,8 +148,7 @@ public class BinaryTypeInference {
     return Paths.get(this.workingDir.toString(), "ir.json");
   }
 
-  private FileOutputStream openOutput(Path target)
-      throws FileNotFoundException {
+  private FileOutputStream openOutput(Path target) throws FileNotFoundException {
     return new FileOutputStream(target.toFile());
   }
 
@@ -156,33 +164,40 @@ public class BinaryTypeInference {
     return Paths.get(this.workingDir.toString(), "lattice.json");
   }
 
-  public Path getWorkingDir() { return this.workingDir; }
+  public Path getWorkingDir() {
+    return this.workingDir;
+  }
 
-  private static java.util.function
-      .Function<DataType, Optional<List<String>>> strat =
+  private static java.util.function.Function<DataType, Optional<List<String>>> strat =
       (DataType inputtype) -> {
-    if (inputtype instanceof AbstractIntegerDataType) {
-      return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
-    } else {
-      return Optional.empty();
-    }
-  };
+        if (inputtype instanceof AbstractIntegerDataType) {
+          return Optional.of(List.of(OutputBuilder.SPECIAL_WEAK_INTEGER));
+        } else {
+          return Optional.empty();
+        }
+      };
 
   public static TypeLattice createTypeLattice(PreservedFunctionList preserved) {
     return new TypeLattice(preserved.getTidMap(), List.of(strat), true);
   }
 
   public Map<String, DataType> produceArtifacts() throws Exception {
-    GetBinaryJson ir_generator = new GetBinaryJson(
-        null, this.prog, null, null, null, null, this.extra_script_dirs,
-        this.getTransitiveClosureOfEntryPoints());
+    GetBinaryJson ir_generator =
+        new GetBinaryJson(
+            null,
+            this.prog,
+            null,
+            null,
+            null,
+            null,
+            this.extra_script_dirs,
+            this.getTransitiveClosureOfEntryPoints());
     ir_generator.generateJSONIR(this.getIROut());
 
     // True so that we dont generate type constants for void types.
     var lattice_gen = createTypeLattice(this.preserved);
     var output_builder = lattice_gen.getOutputBuilder();
-    output_builder.buildAdditionalConstraints(
-        this.openOutput(this.getAdditionalConstraintsPath()));
+    output_builder.buildAdditionalConstraints(this.openOutput(this.getAdditionalConstraintsPath()));
     output_builder.addInterestingTids(
         Util.iteratorToStream(this.prog.getFunctionManager().getFunctions(true))
             .map(PreservedFunctionList::functionToTid)
@@ -190,13 +205,11 @@ public class BinaryTypeInference {
 
     // Make global variables interesting
     output_builder.addInterestingTids(
-        this.getGlobalSymbols()
-            .stream()
+        this.getGlobalSymbols().stream()
             .map(BinaryTypeInference::globalSymbolToTid)
             .collect(Collectors.toList()));
 
-    output_builder.buildInterestingTids(
-        this.openOutput(this.getInterestingTidsPath()));
+    output_builder.buildInterestingTids(this.openOutput(this.getInterestingTidsPath()));
     output_builder.buildLattice(this.getLatticeJsonPath().toFile());
     return output_builder.getTypeConstantMap();
   }
@@ -206,18 +219,23 @@ public class BinaryTypeInference {
   }
 
   public void getCtypes() throws IOException {
-    var runner = new BinaryTypeInferenceRunner(
-        this.getTypeInferenceToolPath(), this.getBinaryPath(), this.getIROut(),
-        this.getLatticeJsonPath(), this.getAdditionalConstraintsPath(),
-        this.getInterestingTidsPath(), this.getCtypesOutPath(), this.workingDir,
-        this.use_aggressive_shared_returns);
+    var runner =
+        new BinaryTypeInferenceRunner(
+            this.getTypeInferenceToolPath(),
+            this.getBinaryPath(),
+            this.getIROut(),
+            this.getLatticeJsonPath(),
+            this.getAdditionalConstraintsPath(),
+            this.getInterestingTidsPath(),
+            this.getCtypesOutPath(),
+            this.workingDir,
+            this.use_aggressive_shared_returns);
 
     var ty_result = runner.inferTypes();
     if (!ty_result.success()) {
       // throw exception
       throw new RuntimeException(
-          "Running type inference failed " +
-          new String(ty_result.getStderr().readAllBytes()));
+          "Running type inference failed " + new String(ty_result.getStderr().readAllBytes()));
     }
   }
 
@@ -248,16 +266,11 @@ public class BinaryTypeInference {
 
   private static Tid globalSymbolToTid(Symbol symb) {
     // TODO(ian): This breaks a lot of abstraction layers.
-    var tid_name = String.format("glb_%s_%s", symb.getAddress().toString(),
-                                 symb.getName());
-    return Tid.newBuilder()
-        .setAddress(symb.getAddress().toString())
-        .setName(tid_name)
-        .build();
+    var tid_name = String.format("glb_%s_%s", symb.getAddress().toString(), symb.getName());
+    return Tid.newBuilder().setAddress(symb.getAddress().toString()).setName(tid_name).build();
   }
 
-  private void applyCtypesToGlobals(Types mapping)
-      throws CodeUnitInsertionException {
+  private void applyCtypesToGlobals(Types mapping) throws CodeUnitInsertionException {
     for (var symb : this.getGlobalSymbols()) {
       if (SymbolUtilities.isDynamicSymbolPattern(symb.getName(), false)) {
         var symb_tid = BinaryTypeInference.globalSymbolToTid(symb);
@@ -267,10 +280,13 @@ public class BinaryTypeInference {
           // done one deref so we need to deref this datatype when we apply it
           // to the address
           if (maybe_data.get() instanceof Pointer) {
-            var ptr = (Pointer)maybe_data.get();
+            var ptr = (Pointer) maybe_data.get();
             DataUtilities.createData(
-                this.prog, symb.getAddress(), ptr.getDataType(),
-                ptr.getDataType().getLength(), false,
+                this.prog,
+                symb.getAddress(),
+                ptr.getDataType(),
+                ptr.getDataType().getLength(),
+                false,
                 DataUtilities.ClearDataMode.CLEAR_ALL_CONFLICT_DATA);
           }
         }
@@ -281,28 +297,32 @@ public class BinaryTypeInference {
   public void applyCtype(Map<String, DataType> constants)
       throws IOException, InvalidInputException, CodeUnitInsertionException {
     var dtm = this.prog.getDataTypeManager();
-    var unknown_ty_builder = new IUnknownTypeBuilder() {
-      @Override
-      public DataType getDefaultUnkownType() {
-        // TODO Auto-generated method stub
-        return DefaultDataType.dataType;
-      }
+    var unknown_ty_builder =
+        new IUnknownTypeBuilder() {
+          @Override
+          public DataType getDefaultUnkownType() {
+            // TODO Auto-generated method stub
+            return DefaultDataType.dataType;
+          }
 
-      @Override
-      public DataType getUnknownDataTypeWithSize(int new_size) {
-        // TODO Auto-generated method stub
-        return Undefined.getUndefinedDataType(new_size);
-      }
+          @Override
+          public DataType getUnknownDataTypeWithSize(int new_size) {
+            // TODO Auto-generated method stub
+            return Undefined.getUndefinedDataType(new_size);
+          }
 
-      @Override
-      public DataType getWeakestIntegerTypeWithSize(int new_size) {
-        // TODO Auto-generated method stub
-        return IntegerDataType.getUnsignedDataType(new_size, dtm);
-      }
-    };
-    var ty_lib = TypeLibrary.parseFromInputStream(
-        new FileInputStream(this.getCtypesOutPath().toFile()), constants,
-        unknown_ty_builder, this.prog.getDataTypeManager());
+          @Override
+          public DataType getWeakestIntegerTypeWithSize(int new_size) {
+            // TODO Auto-generated method stub
+            return IntegerDataType.getUnsignedDataType(new_size, dtm);
+          }
+        };
+    var ty_lib =
+        TypeLibrary.parseFromInputStream(
+            new FileInputStream(this.getCtypesOutPath().toFile()),
+            constants,
+            unknown_ty_builder,
+            this.prog.getDataTypeManager());
 
     var mapping = ty_lib.buildMapping();
 
@@ -315,7 +335,7 @@ public class BinaryTypeInference {
         var unwrapped_ty = new_ty.get();
         System.out.println(unwrapped_ty.toString());
         assert (unwrapped_ty instanceof FunctionSignature);
-        var sig = (FunctionSignature)unwrapped_ty;
+        var sig = (FunctionSignature) unwrapped_ty;
         var args = sig.getArguments();
         func.setReturnType(
             unknown_ty_builder.refineDataTypeWithSize(
@@ -325,9 +345,9 @@ public class BinaryTypeInference {
         var ind = 0;
         for (var par : params) {
           if (ind < args.length) {
-            par.setDataType(unknown_ty_builder.refineDataTypeWithSize(
-                                args[ind].getDataType(), par.getLength()),
-                            SourceType.ANALYSIS);
+            par.setDataType(
+                unknown_ty_builder.refineDataTypeWithSize(args[ind].getDataType(), par.getLength()),
+                SourceType.ANALYSIS);
           }
           ind++;
         }
