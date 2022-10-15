@@ -256,6 +256,11 @@ public class TypeLibrary {
     for (var fld : unsorted_flds) {
       // safe because this type is already memoized
       var child_ty = this.build_node_type(fld.getTypeId());
+      // Make sure we dont insert ourselves for weird recursive edges.
+      if (child_ty == uniondt) {
+        child_ty = this.unknownType.getDefaultUnkownType();
+      }
+
       uniondt.add(child_ty);
     }
   }
@@ -302,6 +307,11 @@ public class TypeLibrary {
 
       // safe because this type is already memoized
       var fld_ty = this.build_ctype(fld.getTypeId().getTypeId());
+
+      // Make sure we dont insert ourselves for weird recursive edges.
+      if (fld_ty == st) {
+        fld_ty = this.unknownType.getDefaultUnkownType();
+      }
 
       var refined_ty = this.unknownType.refineDataTypeWithSize(fld_ty, fld.getBitSize() / 8);
 
