@@ -9,6 +9,7 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
+import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
@@ -32,6 +33,7 @@ class TypeAnalyzerOptions {
     this.should_save_output = false;
     this.should_preserve_user_types = true;
     this.use_aggressive_shared_returns = false;
+    this.entrypoints = Optional.empty();
   }
 
   void setShouldSaveOutput(boolean val) { this.should_save_output = val; }
@@ -79,8 +81,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     var new_bool = options.getBoolean("Save to debug directory",
                                       this.opts.should_save_output);
 
-    var new_entry_point_list = options.getString("Entry points list", null);
-    if (new_entry_point_list != null) {
+    var new_entry_point_list = options.getString("Entry points list", "");
+    if (!new_entry_point_list.equals("")) {
       this.opts.entrypoints = Optional.of(new_entry_point_list);
     }
 
@@ -100,12 +102,20 @@ public class TypeAnalyzer extends AbstractAnalyzer {
 
   private static Set<Function> ParseEntryPointList(String list, Program prog) {
     var addrs = list.split(";");
-    return Arrays.stream(addrs)
-        .map((String addr) -> prog.getAddressFactory().getAddress(addr))
-        .filter(Objects::nonNull)
-        .map((Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
-        .filter(Objects::nonNull)
-        .collect(Collectors.toSet());
+    var res =
+        Arrays.stream(addrs)
+            .map((String addr) -> prog.getAddressFactory().getAddress(addr))
+            .filter(Objects::nonNull)
+            .map(
+                (Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
+            .filter(Objects::nonNull)
+            .collect(Collectors.toSet());
+
+    for (var it : res) {
+      Msg.debug(TypeAnalyzer.class, it);
+    }
+
+    return res;
   }
 
   @Override
@@ -117,7 +127,8 @@ public class TypeAnalyzer extends AbstractAnalyzer {
                            null,
                            "the function signatures that are assumed correct");
 
-    options.registerOption("Entry points list", OptionType.STRING_TYPE, null,
+    options.registerOption("Entry points list", OptionType.STRING_TYPE, "",
+                           null,
                            "List of entry points in the format \"addr;addr\"");
 
     options.registerOption(
