@@ -94,6 +94,11 @@ public class BinaryTypeInference {
     Set<Function> res = new HashSet<>();
 
     Stack<Function> wlist = new Stack<>();
+
+    for (var ent : this.entry_point_functions.get()) {
+      wlist.add(ent);
+    }
+
     while (!wlist.isEmpty()) {
       var curr = wlist.pop();
 
