@@ -25,6 +25,7 @@ class TypeAnalyzerOptions {
   public Optional<File> preserved_functions_file;
   public boolean should_save_output;
   public boolean should_preserve_user_types;
+  public boolean should_preserve_imported_types;
   public boolean use_aggressive_shared_returns;
   public Optional<String> entrypoints;
 
@@ -32,6 +33,7 @@ class TypeAnalyzerOptions {
     this.preserved_functions_file = Optional.empty();
     this.should_save_output = false;
     this.should_preserve_user_types = true;
+    this.should_preserve_imported_types = true;
     this.use_aggressive_shared_returns = false;
     this.entrypoints = Optional.empty();
   }
@@ -89,6 +91,11 @@ public class TypeAnalyzer extends AbstractAnalyzer {
     this.opts.setShouldSaveOutput(new_bool);
     this.opts.should_preserve_user_types =
         options.getBoolean("Preserve user defined types", this.opts.should_preserve_user_types);
+
+    this.opts.should_preserve_imported_types =
+        options.getBoolean(
+            "Preserve imported type signatures", this.opts.should_preserve_imported_types);
+
     if (file != null) {
       this.opts.setPreservedFunctionsFile(file);
     } else {
@@ -150,6 +157,12 @@ public class TypeAnalyzer extends AbstractAnalyzer {
         "If true, will add user defined function signatures to the assumed types.");
 
     options.registerOption(
+        "Preserve imported type signatures",
+        this.opts.should_preserve_imported_types,
+        null,
+        "If true, will add imported type db function signatures to the assumed types.");
+
+    options.registerOption(
         "Use aggressive shared returns (EXPERIMENTAL)",
         this.opts.use_aggressive_shared_returns,
         null,
@@ -174,7 +187,9 @@ public class TypeAnalyzer extends AbstractAnalyzer {
       maybe_preserved =
           Optional.of(
               PreservedFunctionList.createFromExternSection(
-                  program, this.opts.should_preserve_user_types));
+                  program,
+                  this.opts.should_preserve_user_types,
+                  this.opts.should_preserve_imported_types));
     }
 
     var preserved = maybe_preserved.get();
