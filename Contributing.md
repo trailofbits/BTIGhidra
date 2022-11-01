@@ -24,3 +24,9 @@ response if you ask in our [chat room](https://empireslacking.herokuapp.com/)
 BTIGhidra uses the pull request contribution model. Please make an account on
 Github, fork this repo, and submit code contributions via pull request. For
 more documentation, look [here](https://guides.github.com/activities/forking/).
+
+There are two submodules used by this project
+* [binary_type_inference](https://github.com/trailofbits/binary_type_inference/) contains the core implementation of the type inference algorithm operating over an IR exported from Ghidra
+* [cwe_checker](https://github.com/trailofbits/cwe_checker) a fork of [cwe_checker](https://github.com/fkie-cad/cwe_checker) that exports some more information from Ghidra into their IR. We use cwe_checker as the basis for our flow-sensitive analyses and hope to contribute these changes back/not be dependent on a fork of cwe_checker in the future. 
+
+You will need to introduce a PR on every repository for which you would like to submit a change. Please reference the issue in all PRs particularly if the PRs are co-dependent.
