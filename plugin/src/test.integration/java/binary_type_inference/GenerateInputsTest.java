@@ -73,7 +73,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
                 specPair.getCompilerSpec());
     env.getGhidraProject().analyze(program, false);
 
-    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, false, false);
     var const_types = inf.produceArtifacts();
@@ -137,7 +137,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     key_hash_func.setSignatureSource(SourceType.USER_DEFINED);
 
-    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true, false);
     var const_types = inf.produceArtifacts();
@@ -185,7 +185,7 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
 
     System.out.println("Done with analysis");
 
-    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true);
+    PreservedFunctionList pl = PreservedFunctionList.createFromExternSection(program, true, true);
 
     var inf = new BinaryTypeInference(program, pl, List.of(pcodeExtractorDir), null, true, false);
     var const_types = inf.produceArtifacts();
