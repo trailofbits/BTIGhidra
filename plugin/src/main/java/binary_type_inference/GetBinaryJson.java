@@ -86,6 +86,7 @@ public class GetBinaryJson {
     String scriptName =
         srcFile != null ? srcFile.getAbsolutePath() : (script.getClass().getName() + ".class");
     var scriptState = new GhidraState(tool, project, prog, loc, sel, highlight);
+    scriptState.addEnvironmentVar("SHOULD_RESOLVE_STUBS", "ON");
     if (this.target_functions.isPresent()) {
       scriptState.addEnvironmentVar("TARGET_FUNCTION_LIST", this.target_functions.get());
     }

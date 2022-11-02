@@ -21,6 +21,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * Represents user changeable options that affect
+ * the type inference analyzer.
+ */
 class TypeAnalyzerOptions {
   public Optional<File> preserved_functions_file;
   public boolean should_save_output;
@@ -108,6 +112,13 @@ public class TypeAnalyzer extends AbstractAnalyzer {
             this.opts.use_aggressive_shared_returns);
   }
 
+  /**
+   * Parses a list of addresses in the form "addr1;addr2" into a set of functions where the addresses are the entry points of the functions
+   * If a function does not have an entry point at addr1 then that address will be ignored.
+   * @param list A list of semicolon seperated addresses in hex
+   * @param prog The program to search for functions in 
+   * @return The set of functions that match the list of entrypoints
+   */
   private static Set<Function> ParseEntryPointList(String list, Program prog) {
     var addrs = list.split(";");
     var res =
@@ -117,10 +128,6 @@ public class TypeAnalyzer extends AbstractAnalyzer {
             .map((Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
             .filter(Objects::nonNull)
             .collect(Collectors.toSet());
-
-    for (var it : res) {
-      Msg.debug(TypeAnalyzer.class, it);
-    }
 
     return res;
   }
