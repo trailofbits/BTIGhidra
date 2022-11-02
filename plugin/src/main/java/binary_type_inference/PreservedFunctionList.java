@@ -19,6 +19,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * A list of functions where the type information for these functions is taken as a given during type inference.
+ * By default this list includes externals, user defined types, and imported types.
+ */
 public class PreservedFunctionList {
 
   private final Set<Function> preservedFunctions;

@@ -22,6 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Class for converting a Ghidra program into CWE Checker IR by invoking the PcodeExtractor script.
+ */
 public class GetBinaryJson {
 
   private final Program prog;
