@@ -21,9 +21,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
-/**
- * Handles building artifacts required for performing type inference.
- */
+/** Handles building artifacts required for performing type inference. */
 public class OutputBuilder {
   private final List<Pair<String, String>> lattice;
   private final List<AdditionalConstraint> additional_constraints;

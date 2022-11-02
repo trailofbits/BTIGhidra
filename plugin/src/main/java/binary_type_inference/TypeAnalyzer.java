@@ -9,7 +9,6 @@ import ghidra.program.model.address.Address;
 import ghidra.program.model.address.AddressSetView;
 import ghidra.program.model.listing.Function;
 import ghidra.program.model.listing.Program;
-import ghidra.util.Msg;
 import ghidra.util.exception.CancelledException;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
@@ -21,10 +20,7 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
-/**
- * Represents user changeable options that affect
- * the type inference analyzer.
- */
+/** Represents user changeable options that affect the type inference analyzer. */
 class TypeAnalyzerOptions {
   public Optional<File> preserved_functions_file;
   public boolean should_save_output;
@@ -113,10 +109,12 @@ public class TypeAnalyzer extends AbstractAnalyzer {
   }
 
   /**
-   * Parses a list of addresses in the form "addr1;addr2" into a set of functions where the addresses are the entry points of the functions
-   * If a function does not have an entry point at addr1 then that address will be ignored.
+   * Parses a list of addresses in the form "addr1;addr2" into a set of functions where the
+   * addresses are the entry points of the functions If a function does not have an entry point at
+   * addr1 then that address will be ignored.
+   *
    * @param list A list of semicolon seperated addresses in hex
-   * @param prog The program to search for functions in 
+   * @param prog The program to search for functions in
    * @return The set of functions that match the list of entrypoints
    */
   private static Set<Function> ParseEntryPointList(String list, Program prog) {

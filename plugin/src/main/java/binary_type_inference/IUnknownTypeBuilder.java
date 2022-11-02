@@ -4,8 +4,8 @@ import ghidra.program.model.data.DataType;
 import ghidra.program.model.data.IntegerDataType;
 
 /**
- * Interface describing strategies for refining unknown/imprecise 
- * primitive types with size information.
+ * Interface describing strategies for refining unknown/imprecise primitive types with size
+ * information.
  */
 public interface IUnknownTypeBuilder {
   public DataType getDefaultUnkownType();
