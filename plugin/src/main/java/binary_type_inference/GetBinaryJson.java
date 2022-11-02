@@ -22,6 +22,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 
+/**
+ * Class for converting a Ghidra program into CWE Checker IR by invoking the PcodeExtractor script.
+ */
 public class GetBinaryJson {
 
   private final Program prog;
@@ -86,6 +89,7 @@ public class GetBinaryJson {
     String scriptName =
         srcFile != null ? srcFile.getAbsolutePath() : (script.getClass().getName() + ".class");
     var scriptState = new GhidraState(tool, project, prog, loc, sel, highlight);
+    scriptState.addEnvironmentVar("SHOULD_RESOLVE_STUBS", "ON");
     if (this.target_functions.isPresent()) {
       scriptState.addEnvironmentVar("TARGET_FUNCTION_LIST", this.target_functions.get());
     }

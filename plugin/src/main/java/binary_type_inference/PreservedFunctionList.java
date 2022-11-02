@@ -19,12 +19,16 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+/**
+ * A list of functions where the type information for these functions is taken as a given during
+ * type inference. By default this list includes externals, user defined types, and imported types.
+ */
 public class PreservedFunctionList {
 
   private final Set<Function> preservedFunctions;
 
   public static PreservedFunctionList createFromExternSection(
-      Program prog, boolean keepAllUserDefinedTypes) {
+      Program prog, boolean keepAllUserDefinedTypes, boolean keepAllImportedTypes) {
     var pres = new HashSet<Function>();
 
     for (var func : prog.getFunctionManager().getExternalFunctions()) {
@@ -37,9 +41,13 @@ public class PreservedFunctionList {
       }
     }
 
-    if (keepAllUserDefinedTypes) {
+    if (keepAllUserDefinedTypes || keepAllImportedTypes) {
       for (var func : prog.getFunctionManager().getFunctions(true)) {
-        if (func.getSignatureSource() == SourceType.USER_DEFINED) {
+        if (keepAllUserDefinedTypes && func.getSignatureSource() == SourceType.USER_DEFINED) {
+          pres.add(func);
+        }
+
+        if (keepAllImportedTypes && func.getSignatureSource() == SourceType.IMPORTED) {
           pres.add(func);
         }
       }

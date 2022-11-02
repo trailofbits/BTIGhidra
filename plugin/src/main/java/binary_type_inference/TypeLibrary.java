@@ -37,6 +37,10 @@ import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 import org.apache.commons.lang3.NotImplementedException;
 
+/**
+ * A TypeLibrary builds a map from type identifiers to ghidra datatypes that can be used to then
+ * associate these datatypes to interesting TIDs. A type ID represents a unique handle to a type.
+ */
 public class TypeLibrary {
   private final CTypeMapping mapping;
   private final IUnknownTypeBuilder unknownType;
