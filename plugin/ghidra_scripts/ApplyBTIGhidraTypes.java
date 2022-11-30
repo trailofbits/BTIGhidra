@@ -10,7 +10,7 @@ public class ApplyBTIGhidraTypes extends GhidraScript {
 
     var bti = new BinaryTypeInference(
         currentProgram,
-        PreservedFunctionList.createFromExternSection(currentProgram, true),
+        PreservedFunctionList.createFromExternSection(currentProgram, true, true),
         new ArrayList<>(), null, false, false);
 
     bti.run();
