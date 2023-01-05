@@ -130,6 +130,8 @@ task copyCWECheckerScripts(type: Copy) {
     into layout.projectDirectory.dir("ghidra_scripts")
 }
 
+compileJava.dependsOn copyCWECheckerScripts
+
 // Copy native dependencies. Required for tests to find os-specific executables
 task copyNativeDependencies(type: Copy, dependsOn: copyRustBTIDependencies) {
     from layout.projectDirectory.dir("os")
