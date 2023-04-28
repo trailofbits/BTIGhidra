@@ -85,6 +85,6 @@ jobs:
           retention-days: 7
       - name: Release
         uses: softprops/action-gh-release@v1
-        if: startsWith(github.ref, 'refs/tags/irene-ghidra-v')
+        if: startsWith(github.ref, 'refs/tags/btighidra-v')
         with:
           files: "plugin/dist/*"
