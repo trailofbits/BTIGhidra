@@ -16,9 +16,9 @@ jobs:
       matrix:
         include:
           - target: linux_x86_64
-            os: ubuntu-latest
+            os: ubuntu-22.04
           - target: mac_x86_64
-            os: macos-latest
+            os: macos-13
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup-prereqs
@@ -39,7 +39,7 @@ jobs:
           retention-days: 1
 
   test:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup-prereqs
@@ -51,7 +51,7 @@ jobs:
           just test
 
   release:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
     needs: [build-native, test]
     steps:
       - uses: actions/checkout@v2
