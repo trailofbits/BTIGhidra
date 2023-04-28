@@ -7,7 +7,7 @@ on:
     branches:
       - "main"
     tags:
-      - "irene-ghidra-v*"
+      - "btighidra-v*"
 jobs:
   build-native:
     name: Build Natives ${{ matrix.os }}
