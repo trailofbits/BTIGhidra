@@ -7,7 +7,7 @@ on:
     branches:
       - "main"
     tags:
-      - "release-v*"
+      - "irene-ghidra-v*"
 jobs:
   build-native:
     name: Build Natives ${{ matrix.os }}
@@ -83,3 +83,8 @@ jobs:
           name: btighidra
           path: "plugin/dist/*"
           retention-days: 7
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/irene-ghidra-v')
+        with:
+          files: "plugin/dist/*"
