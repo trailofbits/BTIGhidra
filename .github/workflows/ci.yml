@@ -2,69 +2,93 @@ name: CI
 on:
   pull_request:
     branches:
-      - '*'
+      - "*"
   push:
     branches:
-      - 'main'
-
+      - "main"
+    tags:
+      - "btighidra-v*"
 jobs:
-  test:
-    runs-on: ubuntu-20.04
+  build-native:
+    name: Build Natives ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        include:
+          - target: linux_x86_64
+            os: ubuntu-22.04
+          - target: mac_x86_64
+            os: macos-13
     steps:
       - uses: actions/checkout@v2
-
-      - name: 'Install tools'
-        run: |
-          # just command runner https://github.com/casey/just
-          cargo install just
-          # Check markdown links
-          sudo npm install -g markdown-link-check
-
-      - name: Install stable rust
-        uses: actions-rs/toolchain@v1.0.6
+      - uses: ./.github/actions/setup-prereqs
         with:
-            toolchain: stable
-            override: true
+          bti_secret: ${{ secrets.SUB_BTI }}
+          cwe_secret: ${{ secrets.SUB_CWE_CHECKER }}
 
-      - name: 'Lint Markdown'
+      - name: Run native bins
         run: |
-          find . -name "*.md" -exec markdown-link-check {} \;
-
-      - name: Pull Private Submodule binary_type_inference
-        env:
-          SSHK: ${{ secrets.SUB_BTI }}
-        run: |
-          mkdir -p $HOME/.ssh
-          echo "$SSHK" > $HOME/.ssh/ssh.key
-          chmod 600 $HOME/.ssh/ssh.key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init -- ./binary_type_inference
-
-      - name: Pull Private Submodule CWE_Checker
-        env:
-          SSHK: ${{ secrets.SUB_CWE_CHECKER }}
-        run: |
-          cd ./binary_type_inference
-          mkdir -p $HOME/.ssh
-          echo "$SSHK" > $HOME/.ssh/ssh.key
-          chmod 600 $HOME/.ssh/ssh.key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init -- ./cwe_checker
-
-      - uses: actions/setup-java@v2
+          just install-native
+      - name: Tar the binaries
+        run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/plugin/os/${{ matrix.target }}/*" -type f)
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v3
         with:
-          distribution: 'temurin'
-          java-version: '17'
+          name: natives-${{ matrix.target }}
+          path: "${{matrix.target}}.build.tar"
+          retention-days: 1
 
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: 'Setup Ghidra'
-        run: |
-          wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.2.2_build/ghidra_10.2.2_PUBLIC_20221115.zip --output-document=ghidra.zip
-          unzip ghidra.zip
-          echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.2.2_PUBLIC" >> $GITHUB_ENV
-
-      - name: 'Lint, Build, and Test BTI'
+  test:
+    runs-on: ubuntu-22.04
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-prereqs
+        with:
+          bti_secret: ${{ secrets.SUB_BTI }}
+          cwe_secret: ${{ secrets.SUB_CWE_CHECKER }}
+      - name: "Lint, Build, and Test BTI"
         run: |
           just test
+
+  release:
+    runs-on: ubuntu-22.04
+    needs: [build-native, test]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-prereqs
+        with:
+          bti_secret: ${{ secrets.SUB_BTI }}
+          cwe_secret: ${{ secrets.SUB_CWE_CHECKER }}
+      - name: Download linux_x86_64
+        uses: actions/download-artifact@v3
+        with:
+          name: natives-linux_x86_64
+      - name: Download mac_x86_64
+        uses: actions/download-artifact@v3
+        with:
+          name: natives-mac_x86_64
+      - name: Extract all binaries
+        run: |
+          for file in *.build.tar; do
+            echo "Extracting $file"
+            tar xvf "$file"
+          done
+
+      - name: "Build release"
+        run: |
+          just build
+      - name: Upload multiplatform build
+        uses: actions/upload-artifact@v3
+        with:
+          name: btighidra
+          path: "plugin/dist/*"
+          retention-days: 7
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        if: startsWith(github.ref, 'refs/tags/btighidra-v')
+        with:
+          files: "plugin/dist/*"

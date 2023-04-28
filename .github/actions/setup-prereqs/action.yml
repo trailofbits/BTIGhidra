@@ -1,0 +1,70 @@
+name: "Setup native deps"
+description: "Sets up the BTIGhidra repo for building"
+
+inputs:
+  bti_secret:
+    description: "secret to clone bti"
+    required: true
+
+  cwe_secret:
+    description: "secret to clone cwe"
+    required: true
+runs:
+  using: "composite"
+  steps:
+    - uses: extractions/setup-just@69d82fb0233557aec017ef13706851d0694e0f1d # v1.6.0
+    
+    - name: "Install tools"
+      shell: bash
+      run: |
+        # Check markdown links
+        sudo npm install -g markdown-link-check
+
+    - name: Install stable rust
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: stable
+        override: true
+
+    - name: "Lint Markdown"
+      shell: bash
+      run: |
+        find . -name "*.md" -exec markdown-link-check {} \;
+
+    - name: Pull Private Submodule binary_type_inference
+      shell: bash
+      env:
+        SSHK: ${{ inputs.bti_secret }}
+      run: |
+        mkdir -p $HOME/.ssh
+        echo "$SSHK" > $HOME/.ssh/ssh.key
+        chmod 600 $HOME/.ssh/ssh.key
+        export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+        git submodule update --init -- ./binary_type_inference
+
+    - name: Pull Private Submodule CWE_Checker
+      shell: bash
+      env:
+        SSHK: ${{ inputs.cwe_secret }}
+      run: |
+        cd ./binary_type_inference
+        mkdir -p $HOME/.ssh
+        echo "$SSHK" > $HOME/.ssh/ssh.key
+        chmod 600 $HOME/.ssh/ssh.key
+        export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+        git submodule update --init -- ./cwe_checker
+
+    - uses: actions/setup-java@v2
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
+
+    - name: "Setup Ghidra"
+      shell: bash
+      run: |
+        wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.2.3_build/ghidra_10.2.3_PUBLIC_20230208.zip --output-document=ghidra.zip
+        unzip ghidra.zip
+        echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.2.3_PUBLIC" >> $GITHUB_ENV
