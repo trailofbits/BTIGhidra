@@ -2,7 +2,7 @@ name: "Setup native deps"
 description: "Sets up the BTIGhidra repo for building"
 
 inputs:
-  bit_secret:
+  bti_secret:
     description: "secret to clone bti"
     required: true
 
