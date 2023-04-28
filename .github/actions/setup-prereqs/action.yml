@@ -1,6 +1,14 @@
 name: "Setup native deps"
 description: "Sets up the BTIGhidra repo for building"
 
+inputs:
+  bit_secret:
+    description: "secret to clone bti"
+    required: true
+
+  cwe_secret:
+    description: "secret to clone cwe"
+    required: true
 runs:
   using: "composite"
   steps:
@@ -26,7 +34,7 @@ runs:
     - name: Pull Private Submodule binary_type_inference
       shell: bash
       env:
-        SSHK: ${{ secrets.SUB_BTI }}
+        SSHK: ${{ inputs.bti_secret }}
       run: |
         mkdir -p $HOME/.ssh
         echo "$SSHK" > $HOME/.ssh/ssh.key
@@ -37,7 +45,7 @@ runs:
     - name: Pull Private Submodule CWE_Checker
       shell: bash
       env:
-        SSHK: ${{ secrets.SUB_CWE_CHECKER }}
+        SSHK: ${{ inputs.cwe_secret }}
       run: |
         cd ./binary_type_inference
         mkdir -p $HOME/.ssh
