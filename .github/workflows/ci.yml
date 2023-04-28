@@ -53,6 +53,10 @@ jobs:
   release:
     runs-on: ubuntu-22.04
     needs: [build-native, test]
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    permissions:
+      contents: write
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup-prereqs
