@@ -2,69 +2,36 @@ name: CI
 on:
   pull_request:
     branches:
-      - '*'
+      - "*"
   push:
     branches:
-      - 'main'
-
+      - "main"
+    tags:
+      - "release-v*"
 jobs:
+  #  build-native:
+  #    name: Build Natives ${{ matrix.os }}
+  #    runs-on: ${{ matrix.os }}
+  #    strategy:
+  #      matrix:
+  #        include:
+  #          - target: linux_x86_64
+  #            os: ubuntu-latest
+  #          - target: mac_x86_64
+  #            os: macos-latest
+
   test:
     runs-on: ubuntu-20.04
     steps:
       - uses: actions/checkout@v2
+      - uses: ./.github/actions/setup-prereqs
 
-      - name: 'Install tools'
-        run: |
-          # just command runner https://github.com/casey/just
-          cargo install just
-          # Check markdown links
-          sudo npm install -g markdown-link-check
-
-      - name: Install stable rust
-        uses: actions-rs/toolchain@v1.0.6
-        with:
-            toolchain: stable
-            override: true
-
-      - name: 'Lint Markdown'
-        run: |
-          find . -name "*.md" -exec markdown-link-check {} \;
-
-      - name: Pull Private Submodule binary_type_inference
-        env:
-          SSHK: ${{ secrets.SUB_BTI }}
-        run: |
-          mkdir -p $HOME/.ssh
-          echo "$SSHK" > $HOME/.ssh/ssh.key
-          chmod 600 $HOME/.ssh/ssh.key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init -- ./binary_type_inference
-
-      - name: Pull Private Submodule CWE_Checker
-        env:
-          SSHK: ${{ secrets.SUB_CWE_CHECKER }}
-        run: |
-          cd ./binary_type_inference
-          mkdir -p $HOME/.ssh
-          echo "$SSHK" > $HOME/.ssh/ssh.key
-          chmod 600 $HOME/.ssh/ssh.key
-          export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
-          git submodule update --init -- ./cwe_checker
-
-      - uses: actions/setup-java@v2
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      - name: Validate Gradle wrapper
-        uses: gradle/wrapper-validation-action@v1
-
-      - name: 'Setup Ghidra'
+      - name: "Setup Ghidra"
         run: |
           wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.2.2_build/ghidra_10.2.2_PUBLIC_20221115.zip --output-document=ghidra.zip
           unzip ghidra.zip
           echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.2.2_PUBLIC" >> $GITHUB_ENV
 
-      - name: 'Lint, Build, and Test BTI'
+      - name: "Lint, Build, and Test BTI"
         run: |
           just test

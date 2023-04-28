@@ -1,0 +1,55 @@
+name: "Setup native deps"
+description: "Sets up the BTIGhidra repo for building"
+
+runs:
+  using: "composite"
+  steps:
+    - name: "Install tools"
+      shell: bash
+      run: |
+        # just command runner https://github.com/casey/just
+        cargo install just
+        # Check markdown links
+        sudo npm install -g markdown-link-check
+
+    - name: Install stable rust
+      uses: actions-rs/toolchain@v1.0.6
+      with:
+        toolchain: stable
+        override: true
+
+    - name: "Lint Markdown"
+      shell: bash
+      run: |
+        find . -name "*.md" -exec markdown-link-check {} \;
+
+    - name: Pull Private Submodule binary_type_inference
+      shell: bash
+      env:
+        SSHK: ${{ secrets.SUB_BTI }}
+      run: |
+        mkdir -p $HOME/.ssh
+        echo "$SSHK" > $HOME/.ssh/ssh.key
+        chmod 600 $HOME/.ssh/ssh.key
+        export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+        git submodule update --init -- ./binary_type_inference
+
+    - name: Pull Private Submodule CWE_Checker
+      shell: bash
+      env:
+        SSHK: ${{ secrets.SUB_CWE_CHECKER }}
+      run: |
+        cd ./binary_type_inference
+        mkdir -p $HOME/.ssh
+        echo "$SSHK" > $HOME/.ssh/ssh.key
+        chmod 600 $HOME/.ssh/ssh.key
+        export GIT_SSH_COMMAND="ssh -i $HOME/.ssh/ssh.key"
+        git submodule update --init -- ./cwe_checker
+
+    - uses: actions/setup-java@v2
+      with:
+        distribution: "temurin"
+        java-version: "17"
+
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@v1
