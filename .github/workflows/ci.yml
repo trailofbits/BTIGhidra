@@ -28,7 +28,7 @@ jobs:
 
       - name: Run native bins
         run: |
-          just build-native-binary
+          just install-native
       - name: Tar the binaries
         run: tar -cvf "${{matrix.target}}.build.tar" $(find . -path "*/plugin/os/${{ matrix.target }}/*" -type f)
       - name: Upload artifacts
