@@ -28,7 +28,7 @@ $ docker run --rm -t -i -v "$(pwd):/home/tob/workspace" -w /home/tob/workspace b
 Make sure you have an environment variable set to the Ghidra installation directory (this is already set up in the Docker image/container):
 
 ```sh
-export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.2.3_PUBLIC
+export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.3_PUBLIC
 ```
 
 Using the [just](https://github.com/casey/just) tool (or view the [`justfile`](./justfile) for common workflow commands):
@@ -49,11 +49,11 @@ just install
 
 If you built using Docker, then you can only use the resulting built plugin on a Linux distribution newer than Ubuntu 20.04.
 
-To install the plugin built by the Docker container, open Ghidra 10.2.3 on your host machine:
+To install the plugin built by the Docker container, open Ghidra 10.3 on your host machine:
 
 1. Navigate and click on `File -> Install Extensions...`
 2. Click on the `+` icon in the upper right corner of the window
-3. Navigate to the path of this repo under `plugin/dist` and select the latest built `ghidra_10.2.3_PUBLIC_<date>_BTIGhidra.zip` file and hit `OK` to finish the selection
+3. Navigate to the path of this repo under `plugin/dist` and select the latest built `ghidra_10.3_PUBLIC_<date>_BTIGhidra.zip` file and hit `OK` to finish the selection
 4. Hit `OK` again if you do not see the message to "restart Ghidra"
 5. Restart Ghidra
 
