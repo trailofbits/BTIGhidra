@@ -13,7 +13,7 @@ runs:
   using: "composite"
   steps:
     - uses: extractions/setup-just@69d82fb0233557aec017ef13706851d0694e0f1d # v1.6.0
-    
+
     - name: "Install tools"
       shell: bash
       run: |
@@ -65,6 +65,6 @@ runs:
     - name: "Setup Ghidra"
       shell: bash
       run: |
-        wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.2.3_build/ghidra_10.2.3_PUBLIC_20230208.zip --output-document=ghidra.zip
+        wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.3_build/ghidra_10.3_PUBLIC_20230510.zip --output-document=ghidra.zip
         unzip ghidra.zip
-        echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.2.3_PUBLIC" >> $GITHUB_ENV
+        echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.3_PUBLIC" >> $GITHUB_ENV
