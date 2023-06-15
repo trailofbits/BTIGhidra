@@ -49,9 +49,8 @@ jobs:
       - name: "Lint, Build, and Test BTI"
         run: |
           just test
-            - name: "Tar test logs"
-        if: ${{ failure() }}
       - name: "Tar logs"
+        if: ${{ failure() }}
         run: |
           tar -cvf test-report.tar.gz plugin/build/reports/tests/
       - name: "Upload test logs"
