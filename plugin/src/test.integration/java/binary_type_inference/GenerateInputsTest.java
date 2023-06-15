@@ -6,6 +6,7 @@ import static org.junit.Assert.assertTrue;
 import generic.jar.ResourceFile;
 import ghidra.GhidraTestApplicationLayout;
 import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
+import ghidra.framework.GModule;
 import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.ByteDataType;
 import ghidra.program.model.data.DataUtilities;
@@ -50,16 +51,16 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
   protected ApplicationLayout createApplicationLayout() throws IOException {
     return new GhidraTestApplicationLayout(new File(getTestDirectoryPath())) {
       @Override
-      protected Collection<ResourceFile> findGhidraApplicationRootDirs() {
-        Collection<ResourceFile> initDirs = super.findGhidraApplicationRootDirs();
-        // Add our current project to where Ghidra searches for modules so that
-        // it can find our native binaries. This needs to be the _parent_
-        // directory because internal implementation searches subdirectories for
-        // 'Module.manifest'.
-        initDirs.add(
-            new ResourceFile(
-                FileSystems.getDefault().getPath("").toAbsolutePath().toFile().getParentFile()));
-        return initDirs;
+      protected Map<String, GModule> findGhidraModules() throws IOException {
+        Map<String, GModule> initModules = new HashMap<>(super.findGhidraModules());
+
+        // Add our current project to the other found Ghidra Modules.
+        File ownProjectDir = FileSystems.getDefault().getPath("").toAbsolutePath().toFile();
+        String ownModuleName = ownProjectDir.getName();
+        GModule ownModule = new GModule(applicationRootDirs, new ResourceFile(ownProjectDir));
+        initModules.put(ownModuleName, ownModule);
+
+        return Collections.unmodifiableMap(initModules);
       }
     };
   }
