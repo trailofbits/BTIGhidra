@@ -3,6 +3,8 @@ package binary_type_inference;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 
+import generic.jar.ResourceFile;
+import ghidra.GhidraTestApplicationLayout;
 import ghidra.app.plugin.core.analysis.AutoAnalysisManager;
 import ghidra.program.model.data.AbstractIntegerDataType;
 import ghidra.program.model.data.ByteDataType;
@@ -19,13 +21,12 @@ import ghidra.test.TestEnv;
 import ghidra.util.task.TaskMonitor;
 import java.io.File;
 import java.io.IOException;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.nio.file.FileSystems;
+import java.util.*;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import utility.application.ApplicationLayout;
 
 public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
   private static TestEnv env;
@@ -43,6 +44,24 @@ public class GenerateInputsTest extends AbstractGhidraHeadlessIntegrationTest {
                 System.getProperty("user.dir")
                     + "/../binary_type_inference/cwe_checker/src/ghidra/p_code_extractor")
             .getCanonicalPath();
+  }
+
+  @Override
+  protected ApplicationLayout createApplicationLayout() throws IOException {
+    return new GhidraTestApplicationLayout(new File(getTestDirectoryPath())) {
+      @Override
+      protected Collection<ResourceFile> findGhidraApplicationRootDirs() {
+        Collection<ResourceFile> initDirs = super.findGhidraApplicationRootDirs();
+        // Add our current project to where Ghidra searches for modules so that
+        // it can find our native binaries. This needs to be the _parent_
+        // directory because internal implementation searches subdirectories for
+        // 'Module.manifest'.
+        initDirs.add(
+            new ResourceFile(
+                FileSystems.getDefault().getPath("").toAbsolutePath().toFile().getParentFile()));
+        return initDirs;
+      }
+    };
   }
 
   @After
