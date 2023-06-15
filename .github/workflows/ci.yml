@@ -49,6 +49,17 @@ jobs:
       - name: "Lint, Build, and Test BTI"
         run: |
           just test
+            - name: "Tar test logs"
+        if: ${{ failure() }}
+      - name: "Tar logs"
+        run: |
+          tar -cvf test-report.tar.gz plugin/build/reports/tests/
+      - name: "Upload test logs"
+        uses: actions/upload-artifact@v3
+        if: ${{ failure() }}
+        with:
+          name: Test Report
+          path: test-report.tar.gz
 
   release:
     runs-on: ubuntu-22.04
