@@ -157,11 +157,16 @@ sourceSets {
         }
     }
 
-    integration {
-        java.srcDir "$projectDir/src/test.integration/java"
-        resources.srcDir "$projectDir/src/test/resources"
-        compileClasspath += main.output + test.output
-        runtimeClasspath += main.output + test.output
+    integrationTest {
+        java {
+            srcDirs = ["src/test.integration/java"]
+            compileClasspath += main.output + test.output
+            runtimeClasspath += main.output + test.output
+        }
+        resources {
+            // Want to reuse resources from unittests
+            srcDirs = ["src/test/resources"]
+        }
     }
 }
 
@@ -177,35 +182,36 @@ test {
 tasks.register('integrationTest', Test) {
     description = "Runs integration tests."
     group = 'verification'
+
     testLogging {
-        outputs.upToDateWhen {false}
+        outputs.upToDateWhen { false }
         showStandardStreams = true
     }
-    testClassesDirs = sourceSets.integration.output.classesDirs
-    classpath = sourceSets.integration.runtimeClasspath
+
+    testClassesDirs = files sourceSets.integrationTest.output.classesDirs
+    classpath = sourceSets.integrationTest.runtimeClasspath
 
     // Required due to global state that gets messed up if we don't use a new
     // JVM for each test...
     forkEvery 1
 
     dependsOn spotlessCheck, copyNativeDependencies
-
-    shouldRunAfter test
 }
 
 configurations {
-    integrationCompileOnly.extendsFrom testCompileOnly
-    integrationImplementation.extendsFrom testImplementation
-    integrationRuntimeOnly.extendsFrom testRuntimeOnly
+    integrationTestImplementation.extendsFrom testImplementation
+    integrationTestRuntimeOnly.extendsFrom testRuntimeOnly, integrationTestImplementation
 }
 
 check.dependsOn integrationTest
+integrationTest.mustRunAfter test
+testClasses.finalizedBy integrationTestClasses
 
 idea {
     module {
         // Have the integration tests show up as Intellij test directory
-        testSourceDirs += project.sourceSets.integration.java.srcDirs
-        testSourceDirs += project.sourceSets.integration.resources.srcDirs
+        testSources.from(sourceSets.integrationTest.java.srcDirs)
+        testSources.from(sourceSets.integrationTest.resources)
     }
 }
 
