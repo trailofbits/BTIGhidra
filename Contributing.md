@@ -3,7 +3,7 @@
 First, thanks for your interest in contributing to BTIGhidra! We welcome and
 appreciate all contributions, including bug reports, feature suggestions, and code improvements.
 
-If you're unsure where to start, we recommend to join our [chat room](https://empireslacking.herokuapp.com/)
+If you're unsure where to start, we recommend to join our [chat room](https://slack.empirehacking.nyc/)
 (in the #binary-lifting channel) to discuss new ideas to improve this tool. 
 
 ## Bug reports and feature suggestions
@@ -16,7 +16,7 @@ resolving the issue quickly. If you know that the issue is associated with the t
 ## Questions
 
 Questions can be submitted to the issue tracker, but you may get a faster
-response if you ask in our [chat room](https://empireslacking.herokuapp.com/)
+response if you ask in our [chat room](https://slack.empirehacking.nyc/)
 (in the #binary-lifting channel).
 
 ## Code
