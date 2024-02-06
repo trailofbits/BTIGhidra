@@ -1,4 +1,5 @@
 # Binary Type Inference Ghidra Plugin
+This plugin recovers and applies inferred type information to a Ghidra database. The plugin uses a type inference algorithm inspired by ["Polymorphic Type Inference for Machine Code"](https://arxiv.org/abs/1603.05495), to derive types that are conservative in the presence of subtyping and polymorphism. The Ghidra plugin itself is a frontend for a static analysis and type inference located in the [binary_type_inference](https://github.com/trailofbits/binary_type_inference) repository.
 
 Please be sure to grab the submodules:
 
