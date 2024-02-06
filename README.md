@@ -1,5 +1,10 @@
 # Binary Type Inference Ghidra Plugin
-This plugin recovers and applies inferred type information to a Ghidra database. The plugin uses a type inference algorithm inspired by ["Polymorphic Type Inference for Machine Code"](https://arxiv.org/abs/1603.05495), to derive types that are conservative in the presence of subtyping and polymorphism. The Ghidra plugin itself is a frontend for a static analysis and type inference located in the [binary_type_inference](https://github.com/trailofbits/binary_type_inference) repository.
+This plugin recovers and applies inferred type information to a Ghidra database. The plugin uses a type inference algorithm inspired by ["Polymorphic Type Inference for Machine Code"](https://arxiv.org/abs/1603.05495), to derive types that are conservative in the presence of subtyping and polymorphism. The Ghidra plugin itself is a frontend for a static analysis and type inference located in the [binary_type_inference](https://github.com/trailofbits/binary_type_inference) repository. Jump to the [DEMO.md](DEMO.md) to see an example workflow, or follow the install directions to get started.
+
+## Installing 
+Download the latest release from the [releases page](https://github.com/trailofbits/BTIGhidra/releases). The plugin can be installed by opening Ghidra and selecting "Install Extensions..." in the project window. Select the downloaded zip, and ensure the checkbox next to BTIGhidra is checked. After restarting Ghidra, the plugin will be installed and the analysis will be available. [DEMO.md](DEMO.md) provides usage instructions.
+
+## Building from Source
 
 Please be sure to grab the submodules:
 
@@ -29,7 +34,7 @@ $ docker run --rm -t -i -v "$(pwd):/home/tob/workspace" -w /home/tob/workspace b
 Make sure you have an environment variable set to the Ghidra installation directory (this is already set up in the Docker image/container):
 
 ```sh
-export GHIDRA_INSTALL_DIR=<path_to>/ghidra_10.3_PUBLIC
+export GHIDRA_INSTALL_DIR=<path_to>/ghidra_11.0.1_PUBLIC
 ```
 
 Using the [just](https://github.com/casey/just) tool (or view the [`justfile`](./justfile) for common workflow commands):
