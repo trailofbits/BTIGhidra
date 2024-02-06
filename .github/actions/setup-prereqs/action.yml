@@ -65,6 +65,6 @@ runs:
     - name: "Setup Ghidra"
       shell: bash
       run: |
-        wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.3_build/ghidra_10.3_PUBLIC_20230510.zip --output-document=ghidra.zip
+        wget https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_11.0.1_build/ghidra_11.0.1_PUBLIC_20240130.zip --output-document=ghidra.zip
         unzip ghidra.zip
-        echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_10.3_PUBLIC" >> $GITHUB_ENV
+        echo "GHIDRA_INSTALL_DIR=$(pwd)/ghidra_11.0.1_PUBLIC" >> $GITHUB_ENV
