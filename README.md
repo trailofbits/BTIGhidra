@@ -49,11 +49,11 @@ just install
 
 If you built using Docker, then you can only use the resulting built plugin on a Linux distribution newer than Ubuntu 20.04.
 
-To install the plugin built by the Docker container, open Ghidra 10.3 on your host machine:
+To install the plugin built by the Docker container, open Ghidra 11.0.1 on your host machine:
 
 1. Navigate and click on `File -> Install Extensions...`
 2. Click on the `+` icon in the upper right corner of the window
-3. Navigate to the path of this repo under `plugin/dist` and select the latest built `ghidra_10.3_PUBLIC_<date>_BTIGhidra.zip` file and hit `OK` to finish the selection
+3. Navigate to the path of this repo under `plugin/dist` and select the latest built `ghidra_11.0.1_PUBLIC_<date>_BTIGhidra.zip` file and hit `OK` to finish the selection
 4. Hit `OK` again if you do not see the message to "restart Ghidra"
 5. Restart Ghidra
 

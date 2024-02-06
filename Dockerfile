@@ -28,7 +28,7 @@ RUN mkdir -p "${HOME}/.local/bin" && \
     curl -L https://github.com/casey/just/releases/download/1.8.0/just-1.8.0-x86_64-unknown-linux-musl.tar.gz | tar -xz -C "${HOME}/.local/bin"
 
 # Ghidra
-RUN curl -L https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_10.3_build/ghidra_10.3_PUBLIC_20230510.zip -o ghidra.zip && \
+RUN curl -L https://github.com/NationalSecurityAgency/ghidra/releases/download/Ghidra_11.0.1_build/ghidra_11.0.1_PUBLIC_20240130.zip -o ghidra.zip && \
     unzip ghidra.zip -d "${HOME}/.local/opt" && \
     rm ghidra.zip
-ENV GHIDRA_INSTALL_DIR="${HOME}/.local/opt/ghidra_10.3_PUBLIC"
+ENV GHIDRA_INSTALL_DIR="${HOME}/.local/opt/ghidra_11.0.1_PUBLIC"
