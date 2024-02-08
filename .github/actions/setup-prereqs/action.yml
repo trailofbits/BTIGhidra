@@ -56,7 +56,7 @@ runs:
 
     - uses: actions/setup-java@v2
       with:
-        distribution: "temurin"
+        distribution: "zulu"
         java-version: "17"
 
     - name: Validate Gradle wrapper
