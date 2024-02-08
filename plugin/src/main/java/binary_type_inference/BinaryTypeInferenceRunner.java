@@ -101,6 +101,12 @@ public class BinaryTypeInferenceRunner {
     // Call binary type inference tool with arguments
     // Fixes buffering by redirecting output to null
 
+    if (!programLocation.toAbsolutePath().toFile().exists()) {
+      throw new RuntimeException(
+          "Expected to be able to read the original binary file located at: "
+              + programLocation.toString());
+    }
+
     List<String> init_command =
         new ArrayList<>(
             Arrays.asList(
