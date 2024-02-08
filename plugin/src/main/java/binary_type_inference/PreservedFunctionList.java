@@ -32,7 +32,8 @@ public class PreservedFunctionList {
     var pres = new HashSet<Function>();
 
     for (var func : prog.getFunctionManager().getExternalFunctions()) {
-      if (func.getSignatureSource() != SourceType.USER_DEFINED) {
+      if (func.getSignatureSource() != SourceType.USER_DEFINED
+          && Objects.nonNull(func.getFunctionThunkAddresses())) {
         Arrays.stream(func.getFunctionThunkAddresses())
             .map((Address addr) -> prog.getFunctionManager().getFunctionAt(addr))
             .filter(Objects::nonNull)
