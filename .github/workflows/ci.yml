@@ -19,6 +19,8 @@ jobs:
             os: ubuntu-22.04
           - target: mac_x86_64
             os: macos-13
+          - target: mac_arm_64
+            os: macos-14
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup-prereqs
@@ -81,6 +83,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: natives-mac_x86_64
+      - name: Download mac_arm_64
+        uses: actions/download-artifact@v3
+        with:
+          name: natives-mac_arm_64
       - name: Extract all binaries
         run: |
           for file in *.build.tar; do
