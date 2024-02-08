@@ -17,10 +17,8 @@ jobs:
         include:
           - target: linux_x86_64
             os: ubuntu-22.04
-            arch: x64
           - target: mac_x86_64
             os: macos-13
-            arch: x64
           - target: mac_arm_64
             os: macos-14
             arch: aarch64
