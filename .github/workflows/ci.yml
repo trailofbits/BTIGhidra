@@ -17,8 +17,13 @@ jobs:
         include:
           - target: linux_x86_64
             os: ubuntu-22.04
+            arch: amd64
           - target: mac_x86_64
             os: macos-13
+            arch: amd64
+          - target: mac_arm_64
+            os: macos-14
+            arch: arm64
     steps:
       - uses: actions/checkout@v2
       - uses: ./.github/actions/setup-prereqs
@@ -73,6 +78,7 @@ jobs:
         with:
           bti_secret: ${{ secrets.SUB_BTI }}
           cwe_secret: ${{ secrets.SUB_CWE_CHECKER }}
+          arch_override: ${{ matrix.arch }}
       - name: Download linux_x86_64
         uses: actions/download-artifact@v3
         with:
@@ -81,6 +87,10 @@ jobs:
         uses: actions/download-artifact@v3
         with:
           name: natives-mac_x86_64
+      - name: Download mac_arm_64
+        uses: actions/download-artifact@v3
+        with:
+          name: natives-mac_arm_64
       - name: Extract all binaries
         run: |
           for file in *.build.tar; do
