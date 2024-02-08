@@ -9,6 +9,10 @@ inputs:
   cwe_secret:
     description: "secret to clone cwe"
     required: true
+
+  arch_override:
+    description: "override arch for java setup"
+    required: false
 runs:
   using: "composite"
   steps:
@@ -56,8 +60,9 @@ runs:
 
     - uses: actions/setup-java@v2
       with:
-        distribution: "zulu"
+        distribution: "temurin"
         java-version: "17"
+        architecture: ${{ inputs.arch_override }}
 
     - name: Validate Gradle wrapper
       uses: gradle/wrapper-validation-action@v1
