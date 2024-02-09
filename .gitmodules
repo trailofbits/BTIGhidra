@@ -1,4 +1,4 @@
 [submodule "binary_type_inference"]
 	path = binary_type_inference
-	url = git@github.com:trailofbits/binary_type_inference.git
+	url = https://github.com/trailofbits/binary_type_inference
 
