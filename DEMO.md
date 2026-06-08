@@ -192,7 +192,7 @@ After type analysis has finished go back to `FUN_001014fb` and open the data typ
 
 ![target structure data type with size_t and uint8_t* recovered](resources/struct_with_prims.png)
 
-The value_dump callsite's type effect in query is succesfully propogated down to the usage of the global in lookup.
+The value_dump callsite's type effect in query is successfully propagated down to the usage of the global in lookup.
 
 
 
